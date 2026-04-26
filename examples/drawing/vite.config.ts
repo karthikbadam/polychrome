@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: process.env['PC_PUBLISH_BASE'] ?? '/',
+  // Relative-path build ('./'): works under any URL prefix.
+  base: './',
   build: {
     outDir: 'dist',
     sourcemap: true,

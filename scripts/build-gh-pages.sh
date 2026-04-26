@@ -34,16 +34,16 @@ cp -r apps/landing/dist/. "$OUT/"
 # 4. Build each example with its own base path
 for ex in drawing scatterplot choropleth; do
   if [[ -d "examples/$ex" ]]; then
-    echo "==> building example: $ex (base=${BASE}examples/${ex}/)"
-    # Wipe the per-example dist first so a stale cached build (with the
-    # wrong base path) cannot leak through if vite build fails silently.
+    echo "==> building example: $ex (relative-path build)"
+    # Wipe the per-example dist first so a stale cached build cannot leak
+    # through if vite build fails silently.
     rm -rf "examples/$ex/dist"
-    ( cd "examples/$ex" && PC_PUBLISH_BASE="${BASE}examples/${ex}/" pnpm build )
+    ( cd "examples/$ex" && pnpm build )
     if [[ -d "examples/$ex/dist" ]]; then
-      # Sanity: built HTML must reference the correct base path.
-      if ! grep -q "${BASE}examples/${ex}/assets/" "examples/$ex/dist/index.html"; then
-        echo "    !! built index.html does NOT reference ${BASE}examples/${ex}/assets/"
-        echo "    !! refusing to publish a broken example"
+      # Sanity: built HTML must use relative asset paths so the page works
+      # under any URL prefix.
+      if ! grep -qE 'src="\./assets/' "examples/$ex/dist/index.html"; then
+        echo "    !! built index.html does not use relative asset paths"
         grep -oE 'src="[^"]*"' "examples/$ex/dist/index.html" || true
         exit 1
       fi
