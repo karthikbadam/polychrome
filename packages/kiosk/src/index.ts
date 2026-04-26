@@ -165,7 +165,6 @@ function installKioskTransport(opts: KioskOptions): void {
   });
 
   const yKeys = ydoc.getMap<unknown>('keys');
-  const yLists = ydoc.getMap<Y.Array<unknown>>('lists');
 
   const self = {
     actorId: provider.awareness.clientID.toString(),
@@ -174,13 +173,14 @@ function installKioskTransport(opts: KioskOptions): void {
   };
   provider.awareness.setLocalStateField('user', self);
 
+  // ydoc.getArray(name) is idempotent and returns the SAME Y.Array across
+  // peers/calls — that's the correct way to share a nested type. The
+  // earlier impl wrapped Y.Array values inside a Y.Map, which produced a
+  // race: each peer constructed its own Y.Array on first call, and CRDT
+  // last-writer-wins discarded all but one — so the other peer kept
+  // inserting into an orphaned, never-synced array.
   function getList(listId: string): Y.Array<unknown> {
-    let arr = yLists.get(listId);
-    if (!arr) {
-      arr = new Y.Array<unknown>();
-      yLists.set(listId, arr);
-    }
-    return arr;
+    return ydoc.getArray<unknown>(`list:${listId}`);
   }
 
   const api: PolyApi = {
