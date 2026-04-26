@@ -192,9 +192,18 @@ importers:
         specifier: workspace:*
         version: link:../protocol
     devDependencies:
+      '@happy-dom/global-registrator':
+        specifier: ^17.4.4
+        version: 17.6.3
+      happy-dom:
+        specifier: ^17.4.4
+        version: 17.6.3
       typescript:
         specifier: ~5.8.3
         version: 5.8.3
+      vite:
+        specifier: ^6.3.3
+        version: 6.4.2
       vitest:
         specifier: ^4.1.5
         version: 4.1.5(@vitest/coverage-v8@4.1.5)(happy-dom@17.6.3)(vite@6.4.2)
@@ -420,6 +429,10 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@happy-dom/global-registrator@17.6.3':
+    resolution: {integrity: sha512-SE8Mu6bdkgKENemVg20yMrKdYeAvVesQrLPVfNBKnhicCM3ylHV9oIDzDMxSFj3qYCrHrIWOZsItOXSafrM4Tw==}
+    engines: {node: '>=20.0.0'}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2116,6 +2129,10 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@happy-dom/global-registrator@17.6.3':
+    dependencies:
+      happy-dom: 17.6.3
 
   '@humanfs/core@0.19.2':
     dependencies:

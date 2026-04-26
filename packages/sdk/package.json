@@ -4,11 +4,15 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "import": "./dist/sdk.js",
+      "types": "./src/index.ts"
+    }
   },
-  "main": "./src/index.ts",
+  "main": "./dist/sdk.js",
+  "types": "./src/index.ts",
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "vite build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vitest run"
@@ -17,7 +21,10 @@
     "@polychrome/protocol": "workspace:*"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "^17.4.4",
+    "happy-dom": "^17.4.4",
     "typescript": "~5.8.3",
+    "vite": "^6.3.3",
     "vitest": "^4.1.5"
   }
 }
