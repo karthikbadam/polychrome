@@ -152,3 +152,12 @@ html, body {
   padding: 6px 12px;
   z-index: 100;
 }
+
+/* Mobile */
+@media (max-width: 720px) {
+  #controls { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  #controls label, #controls button { font-size: 12px; }
+  #controls input[type="range"] { width: 80px; }
+  #status-badge { bottom: 60px; font-size: 11px; padding: 4px 8px; }
+  canvas { touch-action: none; }
+}

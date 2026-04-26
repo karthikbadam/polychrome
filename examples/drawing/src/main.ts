@@ -6,6 +6,9 @@
  */
 
 import './style.css';
+import { installKiosk } from '@polychrome/kiosk';
+
+installKiosk({ scope: 'drawing' });
 
 // ---------------------------------------------------------------------------
 // Types
@@ -21,28 +24,7 @@ interface Stroke {
   points: Point[];
 }
 
-// Minimal SDK surface we need (duck-typed so we don't import the full SDK
-// in the module graph — it's injected by the extension bridge on window).
-interface PolyApi {
-  list<T>(listId: string): {
-    get(): T[];
-    insert(index: number, value: T): void;
-    delete(index: number): void;
-    subscribe(cb: (value: T[]) => void): () => void;
-  };
-  share<T>(key: string, initial?: T): {
-    get(): T;
-    set(value: T): void;
-    subscribe(cb: (value: T) => void): () => void;
-  };
-  self: { actorId: string; name: string; color: string };
-}
-
-declare global {
-  interface Window {
-    polychrome?: PolyApi;
-  }
-}
+// window.polychrome is declared globally by @polychrome/kiosk.
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -216,7 +198,7 @@ document.getElementById('btn-clear')!.addEventListener('click', () => {
 // SDK wiring
 // ---------------------------------------------------------------------------
 
-function initSdk(pc: PolyApi): void {
+function initSdk(pc: NonNullable<typeof window.polychrome>): void {
   statusBadge.textContent = '✓ connected to session';
   statusBadge.classList.add('connected');
 

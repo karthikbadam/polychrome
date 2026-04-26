@@ -10,6 +10,9 @@
 
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
+import { installKiosk } from '@polychrome/kiosk';
+
+installKiosk({ scope: 'choropleth' });
 import type { Topology, Objects, GeometryCollection } from 'topojson-specification';
 import './style.css';
 
@@ -20,26 +23,7 @@ type GeoJsonProperties = Record<string, unknown>;
 // Types
 // ---------------------------------------------------------------------------
 
-interface PolyApi {
-  share<T>(key: string, initial?: T): {
-    get(): T;
-    set(value: T): void;
-    subscribe(cb: (value: T) => void): () => void;
-  };
-  list<T>(listId: string): {
-    get(): T[];
-    insert(index: number, value: T): void;
-    delete(index: number): void;
-    subscribe(cb: (value: T[]) => void): () => void;
-  };
-  self: { actorId: string; name: string; color: string };
-}
-
-declare global {
-  interface Window {
-    polychrome?: PolyApi;
-  }
-}
+// window.polychrome is declared globally by @polychrome/kiosk.
 
 // GeoJSON feature with numeric id
 interface StateFeature extends GeoJSON.Feature<GeoJSON.MultiPolygon | GeoJSON.Polygon, GeoJsonProperties> {
@@ -300,7 +284,7 @@ function addLegend(): void {
 // SDK wiring
 // ---------------------------------------------------------------------------
 
-function initSdk(pc: PolyApi): void {
+function initSdk(pc: NonNullable<typeof window.polychrome>): void {
   document.getElementById('status-badge')!.textContent = '✓ connected to session';
   document.getElementById('status-badge')!.classList.add('connected');
 

@@ -8,6 +8,11 @@
 import * as d3 from 'd3';
 import './style.css';
 import irisRaw from './iris.csv?raw';
+import { installKiosk } from '@polychrome/kiosk';
+
+// Self-host transport so demos work without the extension.
+// Each demo is its own room scope; ?room= URL param picks the session.
+installKiosk({ scope: 'scatterplot' });
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,21 +29,7 @@ interface IrisRow {
   index: number;
 }
 
-interface PolyApi {
-  share<T>(key: string, initial?: T): {
-    get(): T;
-    set(value: T): void;
-    subscribe(cb: (value: T) => void): () => void;
-  };
-  checkpoint(label: string): void;
-  self: { actorId: string; name: string; color: string };
-}
-
-declare global {
-  interface Window {
-    polychrome?: PolyApi;
-  }
-}
+// window.polychrome is declared globally by @polychrome/kiosk.
 
 // ---------------------------------------------------------------------------
 // Parse CSV
@@ -340,7 +331,7 @@ document.getElementById('btn-checkpoint')!.addEventListener('click', () => {
 // SDK wiring
 // ---------------------------------------------------------------------------
 
-function initSdk(pc: PolyApi): void {
+function initSdk(pc: NonNullable<typeof window.polychrome>): void {
   document.getElementById('status-badge')!.textContent = '✓ connected to session';
   document.getElementById('status-badge')!.classList.add('connected');
 

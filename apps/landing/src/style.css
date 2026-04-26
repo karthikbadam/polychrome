@@ -74,17 +74,6 @@ header {
   margin-left: 4px;
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-}
-.dot-r { background: var(--r); }
-.dot-y { background: var(--y); }
-.dot-g { background: var(--g); }
-.dot-b { background: var(--b); }
-
 nav { display: flex; gap: 24px; font-size: 15px; }
 nav a { color: var(--fg-soft); }
 nav a:hover { color: var(--fg); }
@@ -249,4 +238,23 @@ footer {
   border-top: 1px solid var(--border);
   font-size: 14px;
   color: var(--fg-soft);
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  header { padding: 16px 20px; flex-wrap: wrap; gap: 12px; }
+  nav { gap: 16px; font-size: 14px; }
+  section { padding: 32px 20px; }
+  .hero { padding-top: 32px; padding-bottom: 48px; }
+  .lede { font-size: 16px; }
+  h3 { font-size: 22px; }
+  .cards { grid-template-columns: 1fr; gap: 12px; }
+  .card { padding: 18px; }
+  .btn { padding: 10px 18px; font-size: 14px; }
+  footer { padding: 24px 20px; }
+}
+@media (max-width: 420px) {
+  nav a:not([href^="http"]) { display: none; }
+  nav a[href^="http"] { display: inline; }
+  .brand h1 { font-size: 20px; }
 }

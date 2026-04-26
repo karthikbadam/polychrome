@@ -11,7 +11,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@polychrome/sdk": "workspace:*"
+    "@polychrome/kiosk": "workspace:*",
+    "@polychrome/sdk": "workspace:*",
+    "y-websocket": "^2.1.0",
+    "yjs": "^13.6.30"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
