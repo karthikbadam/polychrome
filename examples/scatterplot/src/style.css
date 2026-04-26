@@ -158,13 +158,21 @@ select:focus {
   font-size: 11px;
 }
 
-.lasso-path {
+.brush .selection {
   fill: var(--accent);
   fill-opacity: 0.12;
   stroke: var(--accent);
   stroke-width: 1.5;
   stroke-dasharray: 4 3;
-  pointer-events: none;
+  shape-rendering: crispEdges;
+}
+.brush .handle { fill: transparent; }
+.brush .overlay { cursor: crosshair; }
+
+.hint {
+  font-size: 11px;
+  color: var(--fg-soft);
+  margin-left: auto;
 }
 
 #status-badge {

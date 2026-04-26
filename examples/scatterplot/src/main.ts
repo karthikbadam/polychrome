@@ -2,7 +2,11 @@
  * Scatterplot example - shared Iris dataset scatter plot using @polychrome/sdk
  *
  * Works standalone (local-only) when window.polychrome is absent.
- * When connected, zoom/pan transform and lasso selection are shared.
+ * When connected, four pieces of state are shared across peers:
+ *   - axes.x         (Feature)              X axis selection
+ *   - axes.y         (Feature)              Y axis selection
+ *   - viewport.tx    ([k, x, y])            d3-zoom transform (data-independent)
+ *   - selection.box  ([x0,y0,x1,y1] | null) brush extent in DATA coords
  */
 
 import * as d3 from 'd3';
@@ -10,8 +14,6 @@ import './style.css';
 import irisRaw from './iris.csv?raw';
 import { installKiosk } from '@polychrome/kiosk';
 
-// Self-host transport so demos work without the extension.
-// Each demo is its own room scope; ?room= URL param picks the session.
 installKiosk({ scope: 'scatterplot' });
 
 // ---------------------------------------------------------------------------
@@ -78,9 +80,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     </div>
     <button class="btn primary" id="btn-checkpoint">Checkpoint</button>
     <button class="btn" id="btn-reset">Reset view</button>
+    <span class="hint">drag to pan, scroll to zoom, shift+drag to brush-select</span>
   </div>
   <div id="chart-area"></div>
-  <div id="status-badge">🔌 not connected to a session</div>
 `;
 
 // ---------------------------------------------------------------------------
@@ -92,8 +94,18 @@ const chartEl = document.getElementById('chart-area')!;
 
 let xFeature: Feature = 'sepal_length';
 let yFeature: Feature = 'sepal_width';
+/** Selected indices, derived from the brush box every render. */
 let selectedIndices: number[] = [];
 let currentTransform: d3.ZoomTransform = d3.zoomIdentity;
+/** Active brush extent in DATA coords: [x0, y0, x1, y1]. null = no selection. */
+let brushBox: [number, number, number, number] | null = null;
+
+// Re-entrancy guards: when we apply a remote change, the local handlers
+// must NOT echo it back as a fresh shared write. Otherwise a slow ping-pong
+// builds up over the wire even with the kiosk's SELF_ORIGIN op-filter.
+let applyingRemoteZoom = false;
+let applyingRemoteAxes = false;
+let applyingRemoteBrush = false;
 
 const svg = d3.select('#chart-area')
   .append('svg')
@@ -113,21 +125,15 @@ const xAxisG = g.append('g').attr('class', 'axis x-axis');
 const yAxisG = g.append('g').attr('class', 'axis y-axis');
 const xLabel = g.append('text').attr('class', 'axis-label').attr('text-anchor', 'middle');
 const yLabel = g.append('text').attr('class', 'axis-label').attr('text-anchor', 'middle');
-const lassoPath = svg.append('path').attr('class', 'lasso-path');
+const brushG = svg.append('g').attr('class', 'brush');
 
-// Scales
+// Scales (rebuilt on every render so resize works)
 let xScale = d3.scaleLinear();
 let yScale = d3.scaleLinear();
 
 function getSize(): { w: number; h: number } {
   const rect = chartEl.getBoundingClientRect();
   return { w: rect.width, h: rect.height };
-}
-
-function updateClip(w: number, h: number): void {
-  defs.select('#chart-clip rect')
-    .attr('width', w - margin.left - margin.right)
-    .attr('height', h - margin.top - margin.bottom);
 }
 
 function buildScales(w: number, h: number): void {
@@ -148,44 +154,44 @@ function buildScales(w: number, h: number): void {
     .range([margin.top + innerH, margin.top]);
 }
 
+function recomputeSelectionFromBrush(xs: d3.ScaleLinear<number, number>, ys: d3.ScaleLinear<number, number>): void {
+  if (brushBox === null) {
+    selectedIndices = [];
+    return;
+  }
+  const [x0, y0, x1, y1] = brushBox;
+  void xs; void ys;
+  selectedIndices = data
+    .filter(d =>
+      d[xFeature] >= Math.min(x0, x1) && d[xFeature] <= Math.max(x0, x1) &&
+      d[yFeature] >= Math.min(y0, y1) && d[yFeature] <= Math.max(y0, y1))
+    .map(d => d.index);
+}
+
 function render(): void {
   const { w, h } = getSize();
   if (w === 0 || h === 0) return;
 
-  updateClip(w, h);
+  defs.select('#chart-clip rect')
+    .attr('width', w - margin.left - margin.right)
+    .attr('height', h - margin.top - margin.bottom);
+
   buildScales(w, h);
 
   const tx = currentTransform;
   const xs = tx.rescaleX(xScale);
   const ys = tx.rescaleY(yScale);
 
+  recomputeSelectionFromBrush(xs, ys);
+
   // Axes
-  const xAx = d3.axisBottom(xs).ticks(6);
-  const yAx = d3.axisLeft(ys).ticks(6);
-
-  xAxisG
-    .attr('transform', `translate(0,${h - margin.bottom})`)
-    .call(xAx);
-
-  yAxisG
-    .attr('transform', `translate(${margin.left},0)`)
-    .call(yAx);
-
-  xLabel
-    .attr('x', margin.left + (w - margin.left - margin.right) / 2)
-    .attr('y', h - 8)
-    .text(FEATURE_LABELS[xFeature]);
-
-  yLabel
-    .attr('transform', `rotate(-90)`)
-    .attr('x', -(margin.top + (h - margin.top - margin.bottom) / 2))
-    .attr('y', 14)
-    .text(FEATURE_LABELS[yFeature]);
+  xAxisG.attr('transform', `translate(0,${h - margin.bottom})`).call(d3.axisBottom(xs).ticks(6));
+  yAxisG.attr('transform', `translate(${margin.left},0)`).call(d3.axisLeft(ys).ticks(6));
+  xLabel.attr('x', margin.left + (w - margin.left - margin.right) / 2).attr('y', h - 8).text(FEATURE_LABELS[xFeature]);
+  yLabel.attr('transform', `rotate(-90)`).attr('x', -(margin.top + (h - margin.top - margin.bottom) / 2)).attr('y', 14).text(FEATURE_LABELS[yFeature]);
 
   // Dots
-  const dots = dotsGroup.selectAll<SVGCircleElement, IrisRow>('circle.dot')
-    .data(data, d => d.index.toString());
-
+  const dots = dotsGroup.selectAll<SVGCircleElement, IrisRow>('circle.dot').data(data, d => d.index.toString());
   dots.enter()
     .append('circle')
     .attr('class', 'dot')
@@ -194,11 +200,12 @@ function render(): void {
     .attr('cy', d => ys(d[yFeature]))
     .attr('r', 5)
     .attr('fill', d => SPECIES_COLORS[d.species] ?? '#888')
-    .attr('opacity', 0.8)
+    .attr('opacity', 0.85)
     .classed('dimmed', d => selectedIndices.length > 0 && !selectedIndices.includes(d.index))
     .classed('selected', d => selectedIndices.includes(d.index));
-
   dots.exit().remove();
+
+  syncBrushVisualToBox(xs, ys);
 }
 
 // ---------------------------------------------------------------------------
@@ -214,18 +221,23 @@ chartEl.style.position = 'relative';
 chartEl.appendChild(legendEl);
 
 // ---------------------------------------------------------------------------
-// Zoom
+// Zoom (drag = pan; scroll = zoom; shift = brush, gated by zoom.filter)
 // ---------------------------------------------------------------------------
 
 const zoom = d3.zoom<SVGSVGElement, unknown>()
   .scaleExtent([0.5, 20])
-  .filter((event) => !event.shiftKey) // shift is for lasso
+  .filter((event: Event) => !(event as MouseEvent | TouchEvent).shiftKey)
   .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
     currentTransform = event.transform;
     render();
+    if (applyingRemoteZoom) return;
     if (window.polychrome) {
-      const vp = window.polychrome.share<string>('viewport.transform');
-      vp.set(currentTransform.toString());
+      // Send a compact [k, x, y] tuple to keep ops small.
+      window.polychrome.share<[number, number, number]>('viewport.tx').set([
+        currentTransform.k,
+        currentTransform.x,
+        currentTransform.y,
+      ]);
     }
   });
 
@@ -233,92 +245,103 @@ svg.call(zoom);
 
 document.getElementById('btn-reset')!.addEventListener('click', () => {
   svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+  brushBox = null;
+  if (window.polychrome) {
+    window.polychrome.share<null>('selection.box').set(null);
+  }
+  render();
 });
 
 // ---------------------------------------------------------------------------
-// Lasso selection (shift+drag)
+// Brush (shift+drag) - shares the extent in DATA coords
 // ---------------------------------------------------------------------------
 
-let lassoPoints: [number, number][] = [];
-let lassoActive = false;
+const brush = d3.brush<unknown>()
+  .filter((event: Event) => (event as MouseEvent).shiftKey)
+  .on('start brush end', (event: d3.D3BrushEvent<unknown>) => {
+    const tx = currentTransform;
+    const xs = tx.rescaleX(xScale);
+    const ys = tx.rescaleY(yScale);
 
-function pointInPolygon(point: [number, number], polygon: [number, number][]): boolean {
-  const [x, y] = point;
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i]![0], yi = polygon[i]![1];
-    const xj = polygon[j]![0], yj = polygon[j]![1];
-    const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
-
-svg.on('pointerdown.lasso', (event: PointerEvent) => {
-  if (!event.shiftKey) return;
-  event.preventDefault();
-  lassoActive = true;
-  lassoPoints = [[event.offsetX, event.offsetY]];
-  lassoPath.attr('d', '');
-});
-
-svg.on('pointermove.lasso', (event: PointerEvent) => {
-  if (!lassoActive) return;
-  lassoPoints.push([event.offsetX, event.offsetY]);
-  if (lassoPoints.length > 1) {
-    const lineGen = d3.line<[number, number]>().x(d => d[0]).y(d => d[1]).curve(d3.curveCatmullRom);
-    lassoPath.attr('d', lineGen(lassoPoints) ?? '');
-  }
-});
-
-svg.on('pointerup.lasso', () => {
-  if (!lassoActive) return;
-  lassoActive = false;
-  lassoPath.attr('d', '');
-
-  if (lassoPoints.length < 3) {
-    selectedIndices = [];
+    if (event.selection === null) {
+      brushBox = null;
+    } else {
+      const [[px0, py0], [px1, py1]] = event.selection as [[number, number], [number, number]];
+      // Convert pixel extent back to data coords so it's invariant to zoom.
+      brushBox = [xs.invert(px0), ys.invert(py0), xs.invert(px1), ys.invert(py1)];
+    }
     render();
+
+    if (event.type === 'end' && !applyingRemoteBrush) {
+      if (window.polychrome) {
+        window.polychrome.share<typeof brushBox>('selection.box').set(brushBox);
+      }
+    }
+  });
+
+function syncBrushVisualToBox(xs: d3.ScaleLinear<number, number>, ys: d3.ScaleLinear<number, number>): void {
+  // Re-apply the brush to the chart-inner rect; brush extent has to use
+  // pixel coords matching the current scales/zoom.
+  const { w, h } = getSize();
+  brush.extent([[margin.left, margin.top], [w - margin.right, h - margin.bottom]]);
+  brushG.call(brush);
+  if (brushBox === null) {
+    // brush.move(null) would re-fire 'end' with selection=null; suppress
+    // the local rebroadcast.
+    applyingRemoteBrush = true;
+    try { brushG.call(brush.move, null); } finally { applyingRemoteBrush = false; }
     return;
   }
-
-  const tx = currentTransform;
-  const xs = tx.rescaleX(xScale);
-  const ys = tx.rescaleY(yScale);
-
-  selectedIndices = data
-    .filter(d => pointInPolygon([xs(d[xFeature]), ys(d[yFeature])], lassoPoints))
-    .map(d => d.index);
-
-  render();
-  lassoPoints = [];
-
-  if (window.polychrome) {
-    const sel = window.polychrome.share<number[]>('selection.indices');
-    sel.set(selectedIndices);
-  }
-});
+  const [x0, y0, x1, y1] = brushBox;
+  const px0 = xs(Math.min(x0, x1));
+  const px1 = xs(Math.max(x0, x1));
+  const py0 = ys(Math.max(y0, y1));
+  const py1 = ys(Math.min(y0, y1));
+  applyingRemoteBrush = true;
+  try { brushG.call(brush.move, [[px0, py0], [px1, py1]]); } finally { applyingRemoteBrush = false; }
+}
 
 // ---------------------------------------------------------------------------
 // Axis dropdowns
 // ---------------------------------------------------------------------------
 
-document.getElementById('x-axis')!.addEventListener('change', (e) => {
-  xFeature = (e.target as HTMLSelectElement).value as Feature;
-  currentTransform = d3.zoomIdentity;
-  svg.call(zoom.transform, d3.zoomIdentity);
-  render();
-});
+const xSel = document.getElementById('x-axis') as HTMLSelectElement;
+const ySel = document.getElementById('y-axis') as HTMLSelectElement;
 
-document.getElementById('y-axis')!.addEventListener('change', (e) => {
-  yFeature = (e.target as HTMLSelectElement).value as Feature;
-  currentTransform = d3.zoomIdentity;
+xSel.addEventListener('change', () => {
+  xFeature = xSel.value as Feature;
+  // Clear brush + zoom on axis change since data domain shifts.
+  brushBox = null;
+  applyingRemoteZoom = true;
   svg.call(zoom.transform, d3.zoomIdentity);
+  applyingRemoteZoom = false;
+  currentTransform = d3.zoomIdentity;
   render();
+  if (applyingRemoteAxes) return;
+  if (window.polychrome) {
+    window.polychrome.share<Feature>('axes.x').set(xFeature);
+    window.polychrome.share<typeof brushBox>('selection.box').set(null);
+    window.polychrome.share<[number, number, number]>('viewport.tx').set([1, 0, 0]);
+  }
+});
+ySel.addEventListener('change', () => {
+  yFeature = ySel.value as Feature;
+  brushBox = null;
+  applyingRemoteZoom = true;
+  svg.call(zoom.transform, d3.zoomIdentity);
+  applyingRemoteZoom = false;
+  currentTransform = d3.zoomIdentity;
+  render();
+  if (applyingRemoteAxes) return;
+  if (window.polychrome) {
+    window.polychrome.share<Feature>('axes.y').set(yFeature);
+    window.polychrome.share<typeof brushBox>('selection.box').set(null);
+    window.polychrome.share<[number, number, number]>('viewport.tx').set([1, 0, 0]);
+  }
 });
 
 // ---------------------------------------------------------------------------
-// Checkpoint button
+// Checkpoint
 // ---------------------------------------------------------------------------
 
 document.getElementById('btn-checkpoint')!.addEventListener('click', () => {
@@ -332,30 +355,61 @@ document.getElementById('btn-checkpoint')!.addEventListener('click', () => {
 // ---------------------------------------------------------------------------
 
 function initSdk(pc: NonNullable<typeof window.polychrome>): void {
-  document.getElementById('status-badge')!.textContent = '✓ connected to session';
-  document.getElementById('status-badge')!.classList.add('connected');
-
-  // Sync viewport transform
-  const vp = pc.share<string>('viewport.transform', d3.zoomIdentity.toString());
-  vp.subscribe((transformStr) => {
+  // Axes
+  pc.share<Feature>('axes.x', xFeature).subscribe((f) => {
+    if (f === xFeature) return;
+    applyingRemoteAxes = true;
     try {
-      // Parse "translate(x,y) scale(k)" into a ZoomTransform
-      const m = /translate\(([^,]+),([^)]+)\)\s*scale\(([^)]+)\)/.exec(transformStr);
-      if (m) {
-        const t = d3.zoomIdentity.translate(+m[1]!, +m[2]!).scale(+m[3]!);
-        currentTransform = t;
-        svg.call(zoom.transform, t);
-        render();
-      }
-    } catch {
-      // ignore parse errors
+      xFeature = f;
+      xSel.value = f;
+      brushBox = null;
+      applyingRemoteZoom = true;
+      svg.call(zoom.transform, d3.zoomIdentity);
+      applyingRemoteZoom = false;
+      currentTransform = d3.zoomIdentity;
+      render();
+    } finally {
+      applyingRemoteAxes = false;
+    }
+  });
+  pc.share<Feature>('axes.y', yFeature).subscribe((f) => {
+    if (f === yFeature) return;
+    applyingRemoteAxes = true;
+    try {
+      yFeature = f;
+      ySel.value = f;
+      brushBox = null;
+      applyingRemoteZoom = true;
+      svg.call(zoom.transform, d3.zoomIdentity);
+      applyingRemoteZoom = false;
+      currentTransform = d3.zoomIdentity;
+      render();
+    } finally {
+      applyingRemoteAxes = false;
     }
   });
 
-  // Sync selection
-  const sel = pc.share<number[]>('selection.indices', []);
-  sel.subscribe((indices) => {
-    selectedIndices = indices;
+  // Viewport
+  pc.share<[number, number, number]>('viewport.tx', [1, 0, 0]).subscribe(([k, x, y]) => {
+    const t = d3.zoomIdentity.translate(x, y).scale(k);
+    if (
+      t.k === currentTransform.k &&
+      t.x === currentTransform.x &&
+      t.y === currentTransform.y
+    ) return;
+    applyingRemoteZoom = true;
+    try {
+      svg.call(zoom.transform, t);
+      currentTransform = t;
+      render();
+    } finally {
+      applyingRemoteZoom = false;
+    }
+  });
+
+  // Brush selection (extent in DATA coords)
+  pc.share<typeof brushBox>('selection.box', null).subscribe((box) => {
+    brushBox = box;
     render();
   });
 }
@@ -369,9 +423,7 @@ ro.observe(chartEl);
 
 window.addEventListener('DOMContentLoaded', () => {
   render();
-  if (window.polychrome) {
-    initSdk(window.polychrome);
-  }
+  if (window.polychrome) initSdk(window.polychrome);
 });
 
 let sdkInitialized = false;
