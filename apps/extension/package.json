@@ -16,7 +16,8 @@
     "@polychrome/replay-player": "workspace:*",
     "@polychrome/sdk": "workspace:*",
     "fflate": "^0.8.2",
-    "idb": "^8.0.3"
+    "idb": "^8.0.3",
+    "peerjs": "^1.5.5"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.4.0",
