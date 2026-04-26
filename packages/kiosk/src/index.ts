@@ -20,7 +20,7 @@
  */
 
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import { WebrtcProvider } from 'y-webrtc';
 
 // ---------------------------------------------------------------------------
 // API contract (mirrors @polychrome/sdk)
@@ -60,13 +60,18 @@ export interface KioskOptions {
   /** Default mode if URL has no `?mode=` override. Defaults to 'auto'. */
   mode?: KioskMode;
   /**
-   * Override the y-websocket server. Defaults to Yjs's public demo server.
-   * Self-host with `npx y-websocket` for production deploys.
+   * y-webrtc signaling servers. Defaults to community-run servers. Override
+   * for self-hosted deployments.
    */
-  wsUrl?: string;
+  signaling?: string[];
   /** How long to wait for the extension to inject (mode='extension'). */
   extensionTimeoutMs?: number;
 }
+
+const DEFAULT_SIGNALING = [
+  'wss://signaling.yjs.dev',
+  'wss://y-webrtc-eu.fly.dev',
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -146,8 +151,18 @@ function installKioskTransport(opts: KioskOptions): void {
   }
 
   const ydoc = new Y.Doc();
-  const wsUrl = opts.wsUrl ?? 'wss://demos.yjs.dev';
-  const provider = new WebsocketProvider(wsUrl, `polychrome-${opts.scope}-${room}`, ydoc);
+  const provider = new WebrtcProvider(`polychrome-${opts.scope}-${room}`, ydoc, {
+    signaling: opts.signaling ?? DEFAULT_SIGNALING,
+    // Use Cloudflare's public STUN servers for NAT traversal.
+    peerOpts: {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.cloudflare.com:3478' },
+          { urls: 'stun:stun.l.google.com:19302' },
+        ],
+      },
+    },
+  });
 
   const yKeys = ydoc.getMap<unknown>('keys');
   const yLists = ydoc.getMap<Y.Array<unknown>>('lists');
@@ -172,13 +187,14 @@ function installKioskTransport(opts: KioskOptions): void {
     self,
 
     share<T>(key: string, initial?: T) {
-      const seed = (): void => {
-        if (initial !== undefined && !yKeys.has(key)) {
-          yKeys.set(key, initial as unknown);
-        }
-      };
-      if (provider.synced) seed();
-      else provider.once('sync', seed);
+      // Seed once after a short delay to let any peer-state sync arrive
+      // first. Y.Map's CRDT semantics are last-writer-wins per key, so even
+      // if multiple late-joiners seed concurrently they converge.
+      if (initial !== undefined) {
+        setTimeout(() => {
+          if (!yKeys.has(key)) yKeys.set(key, initial as unknown);
+        }, 500);
+      }
       return {
         get: (): T => yKeys.get(key) as T,
         set: (value: T): void => { yKeys.set(key, value as unknown); },
@@ -293,7 +309,7 @@ function showBadge(message: string, kind: 'ok' | 'warn' = 'ok'): void {
 
 function installBanner(
   room: string,
-  provider: WebsocketProvider,
+  provider: WebrtcProvider,
   self: { name: string; color: string },
 ): void {
   ensureBannerStyles();
@@ -325,13 +341,19 @@ function installBanner(
   document.body.appendChild(banner);
 
   const updateStatus = (): void => {
+    // Awareness reports every connected client (including self).
     const n = provider.awareness.getStates().size;
-    status.textContent = provider.wsconnected
-      ? n > 1 ? `${n} peers` : 'waiting for a peer'
-      : 'connecting…';
-    peers.textContent = n > 1 ? `· you are ${self.name}` : '';
+    if (n > 1) {
+      status.textContent = `${n - 1} peer${n > 2 ? 's' : ''} connected`;
+      peers.textContent = `· you are ${self.name}`;
+    } else {
+      status.textContent = 'waiting for a peer';
+      peers.textContent = '';
+    }
   };
-  provider.on('status', updateStatus);
   provider.awareness.on('change', updateStatus);
+  // Polite poll in case awareness 'change' didn't fire on initial connect.
+  const t = setInterval(updateStatus, 1000);
+  window.addEventListener('beforeunload', () => clearInterval(t));
   updateStatus();
 }
