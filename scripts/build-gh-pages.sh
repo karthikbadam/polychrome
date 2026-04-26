@@ -2,7 +2,7 @@
 # Build all publishable artifacts and stage them in gh-pages-out/
 # for deployment to GitHub Pages.
 #
-# Usage: PC_PUBLISH_BASE=/PolyChrome/ bash scripts/build-gh-pages.sh
+# Usage: PC_PUBLISH_BASE=/polychrome/ bash scripts/build-gh-pages.sh
 #
 # Idempotent. Safe to re-run.
 
@@ -34,9 +34,19 @@ cp -r apps/landing/dist/. "$OUT/"
 # 4. Build each example with its own base path
 for ex in drawing scatterplot choropleth; do
   if [[ -d "examples/$ex" ]]; then
-    echo "==> building example: $ex"
-    ( cd "examples/$ex" && PC_PUBLISH_BASE="${BASE}examples/${ex}/" pnpm build || true )
+    echo "==> building example: $ex (base=${BASE}examples/${ex}/)"
+    # Wipe the per-example dist first so a stale cached build (with the
+    # wrong base path) cannot leak through if vite build fails silently.
+    rm -rf "examples/$ex/dist"
+    ( cd "examples/$ex" && PC_PUBLISH_BASE="${BASE}examples/${ex}/" pnpm build )
     if [[ -d "examples/$ex/dist" ]]; then
+      # Sanity: built HTML must reference the correct base path.
+      if ! grep -q "${BASE}examples/${ex}/assets/" "examples/$ex/dist/index.html"; then
+        echo "    !! built index.html does NOT reference ${BASE}examples/${ex}/assets/"
+        echo "    !! refusing to publish a broken example"
+        grep -oE 'src="[^"]*"' "examples/$ex/dist/index.html" || true
+        exit 1
+      fi
       mkdir -p "$OUT/examples/$ex"
       cp -r "examples/$ex/dist/." "$OUT/examples/$ex/"
     else

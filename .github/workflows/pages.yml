@@ -39,8 +39,10 @@ jobs:
 
       - name: Build site
         env:
-          # Replace 'PolyChrome' if the repo is renamed.
-          PC_PUBLISH_BASE: /PolyChrome/
+          # Must match the GitHub Pages project path. Repo name is lowercase
+          # 'polychrome' so the served path is /polychrome/. (GitHub Pages
+          # paths ARE case-sensitive even though repo URLs aren't.)
+          PC_PUBLISH_BASE: /polychrome/
         run: bash scripts/build-gh-pages.sh
 
       - name: Upload artifact
