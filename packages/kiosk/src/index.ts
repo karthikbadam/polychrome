@@ -22,25 +22,11 @@
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 
-// ---------------------------------------------------------------------------
-// API contract (mirrors @polychrome/sdk)
-// ---------------------------------------------------------------------------
+import type { PolyApi } from './api.js';
+import { createPolyApi } from './api.js';
 
-interface PolyApi {
-  share<T>(key: string, initial?: T): {
-    get(): T;
-    set(value: T): void;
-    subscribe(cb: (value: T) => void): () => void;
-  };
-  list<T>(listId: string): {
-    get(): T[];
-    insert(index: number, value: T): void;
-    delete(index: number): void;
-    subscribe(cb: (items: T[]) => void): () => void;
-  };
-  checkpoint(label: string): void;
-  self: { actorId: string; name: string; color: string };
-}
+export type { PolyApi } from './api.js';
+export { createPolyApi } from './api.js';
 
 declare global {
   interface Window {
@@ -164,8 +150,6 @@ function installKioskTransport(opts: KioskOptions): void {
     },
   });
 
-  const yKeys = ydoc.getMap<unknown>('keys');
-
   const self = {
     actorId: provider.awareness.clientID.toString(),
     name: pick(ANIMALS),
@@ -173,64 +157,22 @@ function installKioskTransport(opts: KioskOptions): void {
   };
   provider.awareness.setLocalStateField('user', self);
 
-  // ydoc.getArray(name) is idempotent and returns the SAME Y.Array across
-  // peers/calls — that's the correct way to share a nested type. The
-  // earlier impl wrapped Y.Array values inside a Y.Map, which produced a
-  // race: each peer constructed its own Y.Array on first call, and CRDT
-  // last-writer-wins discarded all but one — so the other peer kept
-  // inserting into an orphaned, never-synced array.
-  function getList(listId: string): Y.Array<unknown> {
-    return ydoc.getArray<unknown>(`list:${listId}`);
-  }
-
-  const api: PolyApi = {
-    self,
-
-    share<T>(key: string, initial?: T) {
-      // Seed once after a short delay to let any peer-state sync arrive
-      // first. Y.Map's CRDT semantics are last-writer-wins per key, so even
-      // if multiple late-joiners seed concurrently they converge.
-      if (initial !== undefined) {
-        setTimeout(() => {
-          if (!yKeys.has(key)) yKeys.set(key, initial as unknown);
-        }, 500);
-      }
-      return {
-        get: (): T => yKeys.get(key) as T,
-        set: (value: T): void => { yKeys.set(key, value as unknown); },
-        subscribe(cb: (value: T) => void): () => void {
-          const obs = (e: Y.YMapEvent<unknown>): void => {
-            if (e.keysChanged.has(key)) cb(yKeys.get(key) as T);
-          };
-          yKeys.observe(obs);
-          if (yKeys.has(key)) cb(yKeys.get(key) as T);
-          return () => yKeys.unobserve(obs);
-        },
-      };
-    },
-
-    list<T>(listId: string) {
-      const arr = getList(listId);
-      return {
-        get: (): T[] => arr.toArray() as T[],
-        insert: (index: number, value: T): void => arr.insert(index, [value]),
-        delete: (index: number): void => arr.delete(index, 1),
-        subscribe(cb: (items: T[]) => void): () => void {
-          const obs = (): void => cb(arr.toArray() as T[]);
-          arr.observe(obs);
-          cb(arr.toArray() as T[]);
-          return () => arr.unobserve(obs);
-        },
-      };
-    },
-
-    checkpoint(label: string): void {
-      console.log('[polychrome] checkpoint:', label);
-      const arr = getList('checkpoints');
-      arr.push([{ at: Date.now(), label, by: self.name }]);
-    },
+  // Make sure remote peers stop seeing this tab as soon as it goes away.
+  // y-webrtc's automatic disconnect can be slow over flaky signaling, so
+  // explicitly null out our awareness and tear the provider down.
+  const cleanup = (): void => {
+    try {
+      provider.awareness.setLocalState(null);
+      provider.disconnect();
+      provider.destroy();
+    } catch {
+      // ignore — fired during page close, nothing to recover
+    }
   };
+  window.addEventListener('pagehide', cleanup);
+  window.addEventListener('beforeunload', cleanup);
 
+  const api = createPolyApi(ydoc, self);
   window.polychrome = api;
 
   installBanner(room, provider, self);
@@ -340,9 +282,21 @@ function installBanner(
   banner.append(dot, status, roomCode, copyBtn, peers);
   document.body.appendChild(banner);
 
+  const myClientId = provider.awareness.clientID;
+  // Stale-peer guard: a tab that closed without firing pagehide can leave a
+  // ghost awareness entry until the protocol's outdated-state timeout
+  // (default 30s) expires. We additionally treat any state whose `user`
+  // field is null (cleared on pagehide) as gone.
+  const liveCount = (): number => {
+    let n = 0;
+    for (const [clientId, state] of provider.awareness.getStates()) {
+      if (clientId === myClientId) { n++; continue; }
+      if (state && (state as { user?: unknown }).user) n++;
+    }
+    return n;
+  };
   const updateStatus = (): void => {
-    // Awareness reports every connected client (including self).
-    const n = provider.awareness.getStates().size;
+    const n = liveCount();
     if (n > 1) {
       status.textContent = `${n - 1} peer${n > 2 ? 's' : ''} connected`;
       peers.textContent = `· you are ${self.name}`;
@@ -351,9 +305,12 @@ function installBanner(
       peers.textContent = '';
     }
   };
-  provider.awareness.on('change', updateStatus);
-  // Polite poll in case awareness 'change' didn't fire on initial connect.
+  const onAwarenessChange = (): void => updateStatus();
+  provider.awareness.on('change', onAwarenessChange);
+  // Polite poll so the count refreshes after the awareness outdated-state
+  // timeout culls stale ghosts.
   const t = setInterval(updateStatus, 1000);
   window.addEventListener('beforeunload', () => clearInterval(t));
+  window.addEventListener('pagehide', () => clearInterval(t));
   updateStatus();
 }
