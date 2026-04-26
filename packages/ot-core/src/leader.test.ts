@@ -45,10 +45,14 @@ function makeNetwork(n: number): Network {
 
   for (let i = 0; i < n; i++) {
     const id = `peer-${i}` as ActorId;
+    // NOTE: `machine` is captured directly (not via net.peers[i]) to avoid
+    // stale-index bugs when tests splice out crashed peers.
+    let machine!: LeaderStateMachine;
     const cbs: LeaderCallbacks = {
       onStartHeartbeating() {
-        // Immediately send heartbeat to all peers
-        schedule(id, 'broadcast', 'heartbeat', { senderId: id, seq: 0, term: net.peers[i]!.machine.term }, 10);
+        // Immediately send heartbeat to all peers; read term from the machine
+        // directly — net.peers[i] becomes stale after a splice.
+        schedule(id, 'broadcast', 'heartbeat', { senderId: id, seq: 0, term: machine.term }, 10);
       },
       onStopHeartbeating() { /* nothing */ },
       onSendClaim(lastSeq) {
@@ -59,7 +63,8 @@ function makeNetwork(n: number): Network {
       },
       onLeaderChange(_newLeaderId) { /* tracking done via state */ },
     };
-    net.peers.push({ id, machine: new LeaderStateMachine(id, n, getNow, cbs), lastSeq: 0 as Seq });
+    machine = new LeaderStateMachine(id, n, getNow, cbs);
+    net.peers.push({ id, machine, lastSeq: 0 as Seq });
   }
 
   function schedule(

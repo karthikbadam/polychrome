@@ -92,6 +92,17 @@ export function invert(op: Operation, state: State): Operation {
     // -----------------------------------------------------------------------
     case 'state_set': {
       const p = op.payload as StateSetPayload;
+      // If the key wasn't present before, the inverse must DELETE it, not
+      // set it to undefined.  We carry a `__delete: true` sentinel that
+      // State.apply recognises.
+      if (!state.hasKey(p.key)) {
+        const inv: Operation = {
+          ...base(op),
+          kind:    'state_set',
+          payload: { key: p.key, value: undefined, __delete: true } as unknown as StateSetPayload,
+        };
+        return inv;
+      }
       const prevValue = state.getKey(p.key);
       const inv: Operation = {
         ...base(op),
@@ -104,6 +115,12 @@ export function invert(op: Operation, state: State): Operation {
     // -----------------------------------------------------------------------
     case 'list_insert': {
       const p = op.payload as ListInsertPayload;
+      // State.apply now treats out-of-range indices as noops.  If this op
+      // wouldn't be applied, its inverse must also be a noop.
+      const list = state.getList(p.listId);
+      if (p.index < 0 || p.index > list.length) {
+        return noopOf(op);
+      }
       const inv: Operation = {
         ...base(op),
         kind:    'list_delete',

@@ -12,9 +12,10 @@
  * ---------------|-----------|------------------------|------------------------|-------------------------|-----------------|-----------------|------------|-----------------|---------|------------
  * dom_event      | identity  | identity               | identity               | identity                | identity        | identity        | identity   | identity        | identity| identity
  * state_set      | identity  | LWW (loser→noop)       | identity               | identity                | identity        | identity        | identity   | identity        | identity| identity
- * list_insert    | identity  | identity               | shift-right if a≤b     | shift-left if a<b       | identity        | identity        | identity   | identity        | identity| identity
- * list_delete    | identity  | identity               | shift-left if a≤b      | noop if same idx, else  | identity        | identity        | identity   | identity        | identity| identity
- *                |           |                        |                        |   shift-left if a<b      |                 |                 |            |                 |         |
+ * list_insert    | identity  | identity               | shift-right if a<b,    | shift-right if a≤b      | identity        | identity        | identity   | identity        | identity| identity
+ *                |           |                        |   tie-break by actorId |                         |                 |                 |            |                 |         |
+ * list_delete    | identity  | identity               | shift-left if a<b,     | noop if same idx, else  | identity        | identity        | identity   | identity        | identity| identity
+ *                |           |                        |   keep if a=b          |   shift-left if a<b     |                 |                 |            |                 |         |
  * viewport       | identity  | identity               | identity               | identity                | LWW per actor   | identity        | identity   | identity        | identity| identity
  * presence       | identity  | identity               | identity               | identity                | identity        | LWW per actor   | identity   | identity        | identity| identity
  * checkpoint     | identity  | identity               | identity               | identity                | identity        | identity        | identity   | identity        | identity| identity
@@ -69,9 +70,6 @@ function lwwWins(seqA: Seq, seqB: Seq): boolean {
  * Pure function — no side effects.
  */
 export function transform(a: Operation, b: Operation): Operation {
-  // Fast path: different list targets — list ops on different lists
-  // never interfere.
-
   switch (a.kind) {
     // -----------------------------------------------------------------------
     case 'dom_event':
@@ -103,9 +101,17 @@ export function transform(a: Operation, b: Operation): Operation {
         case 'list_insert': {
           const bp = b.payload as ListInsertPayload;
           if (bp.listId !== al) return b;
-          // Shift right if a.idx <= b.idx
-          if (ai <= bp.index) {
+          if (ai < bp.index) {
+            // a inserts strictly before b — shift b right.
             return withPayload(b, { index: bp.index + 1 });
+          }
+          if (ai === bp.index) {
+            // Same insertion point — break tie by actorId so TP1 holds.
+            // The op from the lexicographically-smaller actorId occupies the
+            // lower slot; the other op shifts right.
+            if (a.actorId < b.actorId) {
+              return withPayload(b, { index: bp.index + 1 });
+            }
           }
           return b;
         }
@@ -113,7 +119,8 @@ export function transform(a: Operation, b: Operation): Operation {
         case 'list_delete': {
           const bp = b.payload as ListDeletePayload;
           if (bp.listId !== al) return b;
-          // Shift right: delete index must increase when insert is before it
+          // a inserts before or at b's delete index — the deletion target
+          // shifts right by one.
           if (ai <= bp.index) {
             return withPayload(b, { index: bp.index + 1 });
           }
@@ -134,12 +141,11 @@ export function transform(a: Operation, b: Operation): Operation {
         case 'list_insert': {
           const bp = b.payload as ListInsertPayload;
           if (bp.listId !== al) return b;
-          // Shift left if a.idx <= b.idx (insertion point moves left
-          // because the element before it was removed)
+          // a deleted an element before b's insertion point — shift b left.
           if (ai < bp.index) {
             return withPayload(b, { index: bp.index - 1 });
           }
-          // If ai === bp.index, the insert lands at the same slot — keep it.
+          // If ai === bp.index, b inserts at the now-vacated slot — keep it.
           return b;
         }
 

@@ -65,8 +65,8 @@ export interface OtEngineOptions {
  * Pure OT engine that coordinates local op submission, leader assignment,
  * and remote op ingestion.
  *
- * All async operations are promise-based; the engine makes no assumptions
- * about the execution environment.
+ * State updates and broadcasts are synchronous; persist() is called
+ * fire-and-forget so that IndexedDB latency never blocks OT progress.
  */
 export class OtEngine {
   private readonly _actorId:   ActorId;
@@ -175,16 +175,9 @@ export class OtEngine {
       });
 
       if (this._opts.isLeader()) {
-        // Leader assigns seq immediately.
-        void this.leaderAssign(op).then(confirmed => {
-          const entry = this._pending.findByClientSeq(op.clientSeq);
-          if (entry) {
-            const drained = this._pending.drain();
-            const remaining = drained.filter(e => e.op.clientSeq !== op.clientSeq);
-            for (const e of remaining) this._pending.enqueue(e);
-            entry.resolve(confirmed);
-          }
-        }).catch(err => {
+        // Leader assigns seq immediately (synchronous path).
+        // _applyConfirmed will call entry.resolve(confirmed) for our own ops.
+        void this.leaderAssign(op).catch(err => {
           reject(err as Error);
         });
       } else {
@@ -195,43 +188,48 @@ export class OtEngine {
 
   /**
    * Ingest an operation received from the network (leader-stamped).
+   * Returns a resolved Promise for API compatibility; all processing is
+   * synchronous so callers need not await this.
    */
-  async ingestRemote(op: Operation): Promise<void> {
+  ingestRemote(op: Operation): Promise<void> {
     if (op.seq === 0 as Seq) {
       // This is an unstamped submission to the leader.
       if (this._opts.isLeader()) {
-        await this.leaderAssign(op);
+        void this.leaderAssign(op);
       } else {
         log.warn('received unstamped op but not leader; dropping');
       }
-      return;
+      return Promise.resolve();
     }
 
     // Already stamped — apply through OT.
-    await this._applyConfirmed(op);
+    this._applyConfirmed(op);
+    return Promise.resolve();
   }
 
   /**
    * Leader-only: assign a global seq to an op and broadcast it.
+   * Returns a resolved Promise for API compatibility; all processing is
+   * synchronous so callers need not await this.
    */
-  async leaderAssign(op: Operation): Promise<Operation> {
+  leaderAssign(op: Operation): Promise<Operation> {
     if (!this._opts.isLeader()) {
-      throw new Error('leaderAssign called on non-leader');
+      return Promise.reject(new Error('leaderAssign called on non-leader'));
     }
 
     this._seq = (this._seq as number + 1) as Seq;
     const confirmed: Operation = { ...op, seq: this._seq };
 
-    await this._applyConfirmed(confirmed);
+    this._applyConfirmed(confirmed);
 
-    // Broadcast the confirmed op.
+    // Broadcast the confirmed op to all peers.
     this._opts.broadcast({
       v:    1,
       type: 'op',
       body: confirmed,
     });
 
-    return confirmed;
+    return Promise.resolve(confirmed);
   }
 
   /**
@@ -287,8 +285,15 @@ export class OtEngine {
   // Private helpers
   // -------------------------------------------------------------------------
 
-  /** Apply a confirmed (seq-bearing) op, running OT against pending ops. */
-  private async _applyConfirmed(op: Operation): Promise<void> {
+  /**
+   * Apply a confirmed (seq-bearing) op, running OT against pending ops.
+   *
+   * This method is intentionally synchronous so that broadcasts happen
+   * within the same event-loop turn (critical for the deterministic
+   * simulation harness and for low-latency production paths).
+   * Persistence is fire-and-forget: IndexedDB latency must not block OT.
+   */
+  private _applyConfirmed(op: Operation): void {
     // Update seq.
     if ((op.seq as number) > (this._seq as number)) {
       this._seq = op.seq;
@@ -308,8 +313,11 @@ export class OtEngine {
     this._state.apply(transformed);
     this._log.push(transformed);
 
-    // Persist and notify.
-    await this._opts.persist(transformed);
+    // Persist fire-and-forget: failures do not affect convergence — the
+    // authoritative op has already been applied to in-memory state.
+    void this._opts.persist(transformed).catch(e => {
+      log.warn('persist error', { seq: op.seq, kind: op.kind, err: e });
+    });
     this._opts.onAuthoritative(transformed);
 
     // Resolve matching pending entry (same actor + clientSeq).

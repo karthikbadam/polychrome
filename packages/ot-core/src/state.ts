@@ -20,6 +20,37 @@ import type {
   ViewportPayload,
 } from '@polychrome/protocol';
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * JSON serialisation with deterministic (sorted) key ordering.
+ *
+ * Plain JSON.stringify depends on insertion order for object keys.  Two peers
+ * that build their state via different op orderings (e.g. concurrent list
+ * inserts on different lists) may end up with the same logical state but
+ * different insertion order in their Maps, producing different JSON strings.
+ * Using sorted keys ensures structural equality is key-order-independent.
+ */
+function canonicalJSON(value: unknown): string {
+  if (Array.isArray(value)) {
+    return '[' + value.map(canonicalJSON).join(',') + ']';
+  }
+  if (value !== null && typeof value === 'object') {
+    const keys = Object.keys(value as object).sort();
+    const pairs = keys.map(
+      k => JSON.stringify(k) + ':' + canonicalJSON((value as Record<string, unknown>)[k]),
+    );
+    return '{' + pairs.join(',') + '}';
+  }
+  return JSON.stringify(value);
+}
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 /** Serialisable snapshot of the shared state (used by invert and sim). */
 export interface StateSnapshot {
   keys:      Record<string, unknown>;
@@ -27,6 +58,10 @@ export interface StateSnapshot {
   presence:  Record<string, PresencePayload>;
   viewports: Record<string, ViewportPayload>;
 }
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
 
 /**
  * Mutable in-memory state that a single peer maintains.
@@ -56,6 +91,11 @@ export class State {
   /** Retrieve a key's value (undefined if not set). */
   getKey(key: string): unknown {
     return this._keys.get(key);
+  }
+
+  /** Whether a key has been set (distinguishes from `value=undefined`). */
+  hasKey(key: string): boolean {
+    return this._keys.has(key);
   }
 
   /** Retrieve a list by id (returns a copy; empty array if not set). */
@@ -93,16 +133,27 @@ export class State {
         break;
 
       case 'state_set': {
-        const p = op.payload as StateSetPayload;
-        this._keys.set(p.key, p.value);
+        // The `__delete` sentinel marks an inverse for a previously-unset key.
+        // Treating it as a delete (rather than `set(key, undefined)`) keeps
+        // canonicalJSON of the snapshot byte-identical to the pre-op state.
+        const p = op.payload as StateSetPayload & { __delete?: boolean };
+        if (p.__delete === true) {
+          this._keys.delete(p.key);
+        } else {
+          this._keys.set(p.key, p.value);
+        }
         break;
       }
 
       case 'list_insert': {
         const p = op.payload as ListInsertPayload;
         const list = this._lists.get(p.listId) ?? [];
-        const idx  = Math.max(0, Math.min(p.index, list.length));
-        list.splice(idx, 0, p.value);
+        // Out-of-range indices are noops, not clamped.  Clamping breaks TP1
+        // because two concurrent ops with out-of-range indices would
+        // deterministically converge on different positions depending on
+        // which was applied first.
+        if (p.index < 0 || p.index > list.length) break;
+        list.splice(p.index, 0, p.value);
         this._lists.set(p.listId, list);
         break;
       }
@@ -173,6 +224,6 @@ export class State {
 
   /** Structural equality (used by tests and sim). */
   equals(other: State): boolean {
-    return JSON.stringify(this.snapshot()) === JSON.stringify(other.snapshot());
+    return canonicalJSON(this.snapshot()) === canonicalJSON(other.snapshot());
   }
 }

@@ -37,6 +37,26 @@ function makeActorId(i: number): ActorId {
 
 const SESSION_ID = 'SIM001' as SessionId;
 
+/**
+ * JSON serialisation with deterministic (sorted) key ordering.
+ * Required for convergence checks: peers may build their state maps in
+ * different insertion orders, so plain JSON.stringify is not a reliable
+ * structural-equality check.
+ */
+function canonicalJSON(value: unknown): string {
+  if (Array.isArray(value)) {
+    return '[' + value.map(canonicalJSON).join(',') + ']';
+  }
+  if (value !== null && typeof value === 'object') {
+    const keys = Object.keys(value as object).sort();
+    const pairs = keys.map(
+      k => JSON.stringify(k) + ':' + canonicalJSON((value as Record<string, unknown>)[k]),
+    );
+    return '{' + pairs.join(',') + '}';
+  }
+  return JSON.stringify(value);
+}
+
 // ---------------------------------------------------------------------------
 // Message
 // ---------------------------------------------------------------------------
@@ -224,7 +244,7 @@ export class Cluster {
    */
   assertConverged(): void {
     if (!this._checkConvergence()) {
-      const snapshots = this._peers.map(p => JSON.stringify(p.engine.snapshot()));
+      const snapshots = this._peers.map(p => canonicalJSON(p.engine.snapshot()));
       throw new Error(
         `Cluster did not converge:\n${snapshots.map((s, i) => `  peer${i}: ${s}`).join('\n')}`,
       );
@@ -233,9 +253,9 @@ export class Cluster {
 
   /** Returns true if all peers have equal state snapshots. */
   private _checkConvergence(): boolean {
-    const first = JSON.stringify(this._peers[0]?.engine.snapshot() ?? {});
+    const first = canonicalJSON(this._peers[0]?.engine.snapshot() ?? {});
     for (let i = 1; i < this._peers.length; i++) {
-      if (JSON.stringify(this._peers[i]?.engine.snapshot() ?? {}) !== first) {
+      if (canonicalJSON(this._peers[i]?.engine.snapshot() ?? {}) !== first) {
         return false;
       }
     }

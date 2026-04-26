@@ -254,7 +254,13 @@ describe('invert — concrete cases', () => {
   });
 
   it('list_insert: inverse is list_delete at same index', () => {
+    // NOTE: State.apply clamps the insert index to [0, list.length].
+    // The inverse must delete at the *actual* (post-clamp) index so that
+    // round-trip identity holds.  We pre-populate the list so that index 2
+    // is in-bounds and no clamping occurs.
     const state = new State();
+    state.apply(op('list_insert', { listId: 'L', index: 0, value: 'a' }));
+    state.apply(op('list_insert', { listId: 'L', index: 1, value: 'b' }));
     const insertOp = op('list_insert', { listId: 'L', index: 2, value: 'hello' });
     const inv      = invert(insertOp, state);
     expect(inv.kind).toBe('list_delete');

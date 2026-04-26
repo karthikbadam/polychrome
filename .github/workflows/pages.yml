@@ -45,6 +45,10 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Auto-create the Pages site if not yet enabled in repo settings.
+          # Requires GITHUB_TOKEN with `pages: write` (granted above).
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
