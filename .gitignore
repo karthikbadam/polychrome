@@ -6,6 +6,7 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+gh-pages-out/
 
 # Turbo
 .turbo/
