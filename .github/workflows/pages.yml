@@ -43,13 +43,6 @@ jobs:
           PC_PUBLISH_BASE: /PolyChrome/
         run: bash scripts/build-gh-pages.sh
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          # Auto-create the Pages site if not yet enabled in repo settings.
-          # Requires GITHUB_TOKEN with `pages: write` (granted above).
-          enablement: true
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -59,11 +52,18 @@ jobs:
     needs: build
     # Only deploy from the default branch. Feature branches build but don't
     # publish — that's intentional so a preview build doesn't clobber prod.
+    #
+    # PREREQUISITE (one-time): repo Settings → Pages → Source: GitHub Actions.
+    # The workflow GITHUB_TOKEN cannot enable Pages on its own; the Pages
+    # enablement step requires admin access we don't have.
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - id: deployment
         uses: actions/deploy-pages@v4
