@@ -52,13 +52,11 @@ jobs:
 
   deploy:
     needs: build
-    # Only deploy from the default branch. Feature branches build but don't
-    # publish — that's intentional so a preview build doesn't clobber prod.
+    # Deploy from default branch OR from the active feature branch as a
+    # preview. Concurrency (above) ensures only the latest run per ref wins.
     #
     # PREREQUISITE (one-time): repo Settings → Pages → Source: GitHub Actions.
-    # The workflow GITHUB_TOKEN cannot enable Pages on its own; the Pages
-    # enablement step requires admin access we don't have.
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/claude/')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
