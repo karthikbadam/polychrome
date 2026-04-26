@@ -1,8 +1,8 @@
 /**
- * api.test.ts — exercises createPolyApi() with two locally-connected
+ * api.test.ts - exercises createPolyApi() with two locally-connected
  * Y.Doc instances, no transport. Each test sets up:
  *
- *   docA  ←—  manualSync  —→  docB
+ *   docA  ←-  manualSync  -→  docB
  *
  * where manualSync wires update events both ways. This is the same effect
  * as a fully-functional WebRTC link without the network.
@@ -181,7 +181,7 @@ describe('list()', () => {
     p.apiA.list<string>('s').insert(0, 'first');
     p.apiA.list<string>('s').insert(1, 'second');
     p.apiA.list<string>('s').insert(2, 'third');
-    // B "joins late" and subscribes — should see all three immediately.
+    // B "joins late" and subscribes - should see all three immediately.
     const seen: string[][] = [];
     p.apiB.list<string>('s').subscribe(items => seen.push(items));
     expect(seen).toEqual([['first', 'second', 'third']]);
@@ -215,7 +215,7 @@ describe('list()', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Late join scenario — full replay
+// Late join scenario - full replay
 // ---------------------------------------------------------------------------
 
 describe('late join replay', () => {
@@ -238,7 +238,7 @@ describe('late join replay', () => {
     expect(apiB.list<string>('strokes').get()).toEqual(['s1', 's2', 's3', 's4', 's5']);
     expect(apiB.share<number>('year').get()).toBe(2023);
 
-    // B subscribes — receives all 5 via the immediate-fire on subscribe.
+    // B subscribes - receives all 5 via the immediate-fire on subscribe.
     const seen: string[][] = [];
     apiB.list<string>('strokes').subscribe(items => seen.push(items));
     expect(seen[0]).toEqual(['s1', 's2', 's3', 's4', 's5']);
@@ -264,7 +264,7 @@ describe('checkpoint()', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Echo-loop regression — the scatterplot/choropleth pattern
+// Echo-loop regression - the scatterplot/choropleth pattern
 // ---------------------------------------------------------------------------
 
 describe('echo loop regression', () => {

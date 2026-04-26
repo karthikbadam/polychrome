@@ -1,7 +1,7 @@
 /**
  * __tests__/throttle.test.ts
  *
- * Tests for createCursorThrottle — verifies ≤30Hz max outbound rate.
+ * Tests for createCursorThrottle - verifies ≤30Hz max outbound rate.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -33,7 +33,7 @@ describe('createCursorThrottle', () => {
     expect(send).toHaveBeenCalledWith({ x: 1, y: 2 });
   });
 
-  it('coalesces burst updates — only last value is sent per window', () => {
+  it('coalesces burst updates - only last value is sent per window', () => {
     const send = vi.fn();
     const { schedule } = createCursorThrottle(send, 33);
 

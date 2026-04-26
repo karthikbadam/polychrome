@@ -34,7 +34,7 @@ pnpm build
 
 ## Loading the extension unpacked in Chrome
 
-1. Run `pnpm build` — output goes to `apps/extension/dist/`.
+1. Run `pnpm build` - output goes to `apps/extension/dist/`.
 2. Open `chrome://extensions`.
 3. Enable **Developer mode** (top-right toggle).
 4. Click **Load unpacked** and select `apps/extension/dist/`.

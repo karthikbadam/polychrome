@@ -1,5 +1,5 @@
 /**
- * db.ts — openPolychromeDB
+ * db.ts - openPolychromeDB
  *
  * Opens (and if necessary upgrades) the 'polychrome' IndexedDB database.
  * All schema migrations are handled here.
@@ -76,20 +76,20 @@ function migrate(
     const sessions = db.createObjectStore('sessions', { keyPath: 'sessionId' });
     sessions.createIndex('lastActiveAt', 'lastActiveAt');
 
-    // op_log — composite key [sessionId, seq]
+    // op_log - composite key [sessionId, seq]
     const opLog = db.createObjectStore('op_log', { keyPath: ['sessionId', 'seq'] });
     opLog.createIndex('by_ts', ['sessionId', 'op.ts']);
     opLog.createIndex('by_kind', ['sessionId', 'op.kind']);
     opLog.createIndex('by_actor', ['sessionId', 'op.actorId']);
 
-    // snapshots — composite key [sessionId, seq]
+    // snapshots - composite key [sessionId, seq]
     const snapshots = db.createObjectStore('snapshots', { keyPath: ['sessionId', 'seq'] });
     snapshots.createIndex('by_type', ['sessionId', 'type']);
 
     // peers
     db.createObjectStore('peers', { keyPath: 'actorId' });
 
-    // identity — single-row store keyed by 'self'
+    // identity - single-row store keyed by 'self'
     db.createObjectStore('identity', { keyPath: 'id' });
   }
 

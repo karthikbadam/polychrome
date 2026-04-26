@@ -1,4 +1,4 @@
-# Track H — Background Service Worker
+# Track H - Background Service Worker
 
 **Wave**: 4 (after C, D, E)
 **Depends on**: A, B, C, D, E
@@ -7,17 +7,17 @@
 ## Goal
 
 Wire the OT engine, storage, and mesh into the MV3 service worker.
-This is the brain — it's where every op enters and exits the system.
+This is the brain - it's where every op enters and exits the system.
 
 ## Files I own (exclusive)
 
-- `apps/extension/src/background/index.ts` — entrypoint
-- `apps/extension/src/background/router.ts` — `chrome.runtime.onMessage` dispatcher
-- `apps/extension/src/background/session.ts` — per-session controller
-- `apps/extension/src/background/sessions-registry.ts` — many active sessions
-- `apps/extension/src/background/keepalive.ts` — alarm-based SW pinger
-- `apps/extension/src/background/snapshots.ts` — snapshot scheduler
-- `apps/extension/src/background/ports.ts` — long-lived port management
+- `apps/extension/src/background/index.ts` - entrypoint
+- `apps/extension/src/background/router.ts` - `chrome.runtime.onMessage` dispatcher
+- `apps/extension/src/background/session.ts` - per-session controller
+- `apps/extension/src/background/sessions-registry.ts` - many active sessions
+- `apps/extension/src/background/keepalive.ts` - alarm-based SW pinger
+- `apps/extension/src/background/snapshots.ts` - snapshot scheduler
+- `apps/extension/src/background/ports.ts` - long-lived port management
 - `apps/extension/src/background/__tests__/**`
 
 ## Spec
@@ -55,12 +55,12 @@ user joins one in tab A, another in tab B).
 
 ## Implementation order
 
-1. `keepalive.ts` — `chrome.alarms` registration; pings only while
+1. `keepalive.ts` - `chrome.alarms` registration; pings only while
    `sessionsRegistry.hasActive()`.
-2. `ports.ts` — register handlers for content-script and UI ports;
+2. `ports.ts` - register handlers for content-script and UI ports;
    route them by `port.name` (`pc-content-${tabId}`, `pc-ui-sidepanel`,
    etc.).
-3. `session.ts` — `Session` class with:
+3. `session.ts` - `Session` class with:
    - `start()`: opens mesh, joins signaling, restores from IDB if log
      exists, runs sync handshake.
    - `submitLocalOp(op)`: hands to OtEngine, persists, broadcasts,
@@ -71,14 +71,14 @@ user joins one in tab A, another in tab B).
    - `seek(seq)`: orchestrates replay (notifies tabs).
    - `branch(atSeq)`: creates a new session via `Storage.import`-like
      copy.
-4. `sessions-registry.ts` — `getOrCreate(sessionId)`, `close(id)`,
+4. `sessions-registry.ts` - `getOrCreate(sessionId)`, `close(id)`,
    `hasActive()`, `byTab(tabId)`.
-5. `snapshots.ts` — `SnapshotScheduler` that, per session, watches the
+5. `snapshots.ts` - `SnapshotScheduler` that, per session, watches the
    confirmed-op stream and triggers an rrweb snapshot via
    `chrome.tabs.sendMessage(tabId, { type: 'snapshot/please' })` every
    30s or 500 ops.
-6. `router.ts` — `chrome.runtime.onMessage` and port handlers.
-7. `index.ts` — sets up logging, registers everything.
+6. `router.ts` - `chrome.runtime.onMessage` and port handlers.
+7. `index.ts` - sets up logging, registers everything.
 
 ## Sync handshake
 
@@ -93,7 +93,7 @@ For sessions with > 1000 missed ops, send the nearest snapshot
 
 ## Tests
 
-- Boot test: SW starts, opens IDB, idle (no session active) — keepalive
+- Boot test: SW starts, opens IDB, idle (no session active) - keepalive
   off.
 - Two-session test: two registry entries, isolated state.
 - Replay/seek: SW pauses live dispatch, sends snapshot, then op

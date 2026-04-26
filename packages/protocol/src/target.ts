@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — target.ts
+ * @polychrome/protocol - target.ts
  *
  * TargetRef helpers for addressing a DOM element across peers.
  *
@@ -145,14 +145,14 @@ export function resolve(ref: TargetRef, doc?: Document): Element | null {
 
   const d = doc ?? document;
 
-  // Strategy 1: CSS selector — succeed only if it matches exactly one element
+  // Strategy 1: CSS selector - succeed only if it matches exactly one element
   try {
     const matches = d.querySelectorAll(ref.selector);
     if (matches.length === 1) {
       return matches[0] ?? null;
     }
   } catch {
-    // Invalid selector — fall through
+    // Invalid selector - fall through
   }
 
   // Strategy 2: XPath
@@ -170,7 +170,7 @@ export function resolve(ref: TargetRef, doc?: Document): Element | null {
         return node;
       }
     } catch {
-      // Invalid xpath — fall through
+      // Invalid xpath - fall through
     }
   }
 

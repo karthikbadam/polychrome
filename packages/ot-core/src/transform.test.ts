@@ -1,5 +1,5 @@
 /**
- * transform.test.ts — Property tests for the OT transform function.
+ * transform.test.ts - Property tests for the OT transform function.
  *
  * TP1 (Diamond property): for any two concurrent ops a and b applied to
  * the same base state s:
@@ -155,7 +155,7 @@ const arbOpPair: fc.Arbitrary<[Operation, Operation]> = fc
     fc.tuple(arbOp(ACTOR_A, seqA), arbOp(ACTOR_B, seqB)),
   );
 
-describe('transform — TP1 property', () => {
+describe('transform - TP1 property', () => {
   it('holds for 1000 random op pairs', () => {
     fc.assert(
       fc.property(
@@ -174,7 +174,7 @@ describe('transform — TP1 property', () => {
 // Concrete cases from the transform table
 // ---------------------------------------------------------------------------
 
-describe('transform — concrete cases', () => {
+describe('transform - concrete cases', () => {
   it('state_set × state_set: same key, a wins (higher seq)', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'state_set', payload: { key: 'x', value: 1 } };
     const b: Operation = { ...baseOp(ACTOR_B, 5),  kind: 'state_set', payload: { key: 'x', value: 2 } };
@@ -189,130 +189,130 @@ describe('transform — concrete cases', () => {
     expect((bPrime.payload as { applied?: boolean }).applied).toBeUndefined();
   });
 
-  it('state_set × state_set: different keys — identity', () => {
+  it('state_set × state_set: different keys - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'state_set', payload: { key: 'x', value: 1 } };
     const b: Operation = { ...baseOp(ACTOR_B, 5),  kind: 'state_set', payload: { key: 'y', value: 2 } };
     const bPrime = transform(a, b);
     expect(bPrime).toEqual(b);
   });
 
-  it('list_insert × list_insert: same list, a.idx ≤ b.idx — shift right', () => {
+  it('list_insert × list_insert: same list, a.idx ≤ b.idx - shift right', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_insert', payload: { listId: 'L', index: 2, value: 'a' } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_insert', payload: { listId: 'L', index: 3, value: 'b' } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { index: number }).index).toBe(4);
   });
 
-  it('list_insert × list_insert: a.idx > b.idx — no shift', () => {
+  it('list_insert × list_insert: a.idx > b.idx - no shift', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_insert', payload: { listId: 'L', index: 5, value: 'a' } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_insert', payload: { listId: 'L', index: 3, value: 'b' } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { index: number }).index).toBe(3);
   });
 
-  it('list_insert × list_delete: same list, a.idx ≤ b.idx — shift right', () => {
+  it('list_insert × list_delete: same list, a.idx ≤ b.idx - shift right', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_insert', payload: { listId: 'L', index: 1, value: 'a' } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_delete', payload: { listId: 'L', index: 2 } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { index: number }).index).toBe(3);
   });
 
-  it('list_delete × list_insert: same list, a.idx < b.idx — shift left', () => {
+  it('list_delete × list_insert: same list, a.idx < b.idx - shift left', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_delete', payload: { listId: 'L', index: 1 } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_insert', payload: { listId: 'L', index: 3, value: 'b' } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { index: number }).index).toBe(2);
   });
 
-  it('list_delete × list_insert: a.idx = b.idx — no shift', () => {
+  it('list_delete × list_insert: a.idx = b.idx - no shift', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_delete', payload: { listId: 'L', index: 3 } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_insert', payload: { listId: 'L', index: 3, value: 'b' } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { index: number }).index).toBe(3);
   });
 
-  it('list_delete × list_delete: same index — noop', () => {
+  it('list_delete × list_delete: same index - noop', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_delete', payload: { listId: 'L', index: 2 } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_delete', payload: { listId: 'L', index: 2 } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { applied?: boolean }).applied).toBe(false);
   });
 
-  it('list_delete × list_delete: a.idx < b.idx — shift left', () => {
+  it('list_delete × list_delete: a.idx < b.idx - shift left', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_delete', payload: { listId: 'L', index: 1 } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_delete', payload: { listId: 'L', index: 3 } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { index: number }).index).toBe(2);
   });
 
-  it('different list ids — identity for list ops', () => {
+  it('different list ids - identity for list ops', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'list_insert', payload: { listId: 'L1', index: 0, value: 'x' } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_insert', payload: { listId: 'L2', index: 0, value: 'y' } };
     const bPrime = transform(a, b);
     expect(bPrime).toEqual(b);
   });
 
-  it('viewport × viewport: same actor, a wins — noop', () => {
+  it('viewport × viewport: same actor, a wins - noop', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'viewport', payload: { tileIndex: 0, tileTotal: 2, layout: 'h' } };
     const b: Operation = { ...baseOp(ACTOR_A, 5),  kind: 'viewport', payload: { tileIndex: 1, tileTotal: 2, layout: 'h' } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { applied?: boolean }).applied).toBe(false);
   });
 
-  it('viewport × viewport: different actors — identity', () => {
+  it('viewport × viewport: different actors - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'viewport', payload: { tileIndex: 0, tileTotal: 2, layout: 'h' } };
     const b: Operation = { ...baseOp(ACTOR_B, 5),  kind: 'viewport', payload: { tileIndex: 1, tileTotal: 2, layout: 'h' } };
     const bPrime = transform(a, b);
     expect(bPrime).toEqual(b);
   });
 
-  it('presence × presence: same actor, a wins — noop', () => {
+  it('presence × presence: same actor, a wins - noop', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'presence', payload: { name: 'Alice' } };
     const b: Operation = { ...baseOp(ACTOR_A, 5),  kind: 'presence', payload: { name: 'Bob' } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { applied?: boolean }).applied).toBe(false);
   });
 
-  it('presence × presence: different actors — identity', () => {
+  it('presence × presence: different actors - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'presence', payload: { name: 'Alice' } };
     const b: Operation = { ...baseOp(ACTOR_B, 5),  kind: 'presence', payload: { name: 'Bob' } };
     const bPrime = transform(a, b);
     expect(bPrime).toEqual(b);
   });
 
-  it('undo × undo: same targetSeq, a wins — noop', () => {
+  it('undo × undo: same targetSeq, a wins - noop', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'undo', payload: { targetSeq: 3 as Seq } };
     const b: Operation = { ...baseOp(ACTOR_B, 5),  kind: 'undo', payload: { targetSeq: 3 as Seq } };
     const bPrime = transform(a, b);
     expect((bPrime.payload as { applied?: boolean }).applied).toBe(false);
   });
 
-  it('undo × undo: different targetSeq — identity', () => {
+  it('undo × undo: different targetSeq - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 10), kind: 'undo', payload: { targetSeq: 3 as Seq } };
     const b: Operation = { ...baseOp(ACTOR_B, 5),  kind: 'undo', payload: { targetSeq: 7 as Seq } };
     const bPrime = transform(a, b);
     expect(bPrime).toEqual(b);
   });
 
-  it('dom_event × any — identity', () => {
+  it('dom_event × any - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'dom_event', payload: { type: 'click', x: 0, y: 0 } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'state_set', payload: { key: 'k', value: 42 } };
     expect(transform(a, b)).toEqual(b);
   });
 
-  it('cursor_move × any — identity', () => {
+  it('cursor_move × any - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'cursor_move', payload: { x: 10, y: 20 } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'state_set', payload: { key: 'k', value: 99 } };
     expect(transform(a, b)).toEqual(b);
   });
 
-  it('checkpoint × any — identity', () => {
+  it('checkpoint × any - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'checkpoint', payload: { label: 'v1' } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'list_insert', payload: { listId: 'L', index: 0, value: 'x' } };
     expect(transform(a, b)).toEqual(b);
   });
 
-  it('kick × any — identity', () => {
+  it('kick × any - identity', () => {
     const a: Operation = { ...baseOp(ACTOR_A, 1), kind: 'kick', payload: { actorId: ACTOR_B } };
     const b: Operation = { ...baseOp(ACTOR_B, 2), kind: 'state_set', payload: { key: 'k', value: 1 } };
     expect(transform(a, b)).toEqual(b);

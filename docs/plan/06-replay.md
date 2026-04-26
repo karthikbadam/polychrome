@@ -1,4 +1,4 @@
-# 06 — Replay, Snapshots, Undo, Branching
+# 06 - Replay, Snapshots, Undo, Branching
 
 Owned jointly by Track G (replay player), Track D (storage), Track I
 (content script), Track K (timeline UI in side panel).
@@ -15,9 +15,9 @@ Owned jointly by Track G (replay player), Track D (storage), Track I
 
 Two snapshot types stored in `snapshots`:
 
-1. **rrweb snapshot** — a full DOM serialization captured by rrweb at
+1. **rrweb snapshot** - a full DOM serialization captured by rrweb at
    the chosen seq boundary. Used for visual replay scaffolding.
-2. **state snapshot** — JSON of all `state_set`/`list_*` shared state
+2. **state snapshot** - JSON of all `state_set`/`list_*` shared state
    keys at the seq boundary. Cheap; always taken alongside rrweb.
 
 Cadence (configurable in Options):

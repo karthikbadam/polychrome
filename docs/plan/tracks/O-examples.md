@@ -1,4 +1,4 @@
-# Track O — Example Apps (port from legacy)
+# Track O - Example Apps (port from legacy)
 
 **Wave**: 5 (after F)
 **Depends on**: A, B, F
@@ -12,10 +12,10 @@ end-to-end and serve as the reference for future authors.
 
 ## Files I own (exclusive)
 
-- `examples/drawing/` — port of `legacy/views/drawing.html`
+- `examples/drawing/` - port of `legacy/views/drawing.html`
   + `legacy/public/javascripts/drawing-script.js`
-- `examples/scatterplot/` — port of `legacy/views/scatterplot.html`
-- `examples/choropleth/` — port of `legacy/views/choropleth.html`
+- `examples/scatterplot/` - port of `legacy/views/scatterplot.html`
+- `examples/choropleth/` - port of `legacy/views/choropleth.html`
 - Each example is a Vite app with `package.json`, `index.html`,
   `src/main.ts`, `src/style.css`, `vite.config.ts`, `README.md`.
 

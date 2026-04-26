@@ -1,5 +1,5 @@
 /**
- * signaling/index.ts — public API for the signaling module
+ * signaling/index.ts - public API for the signaling module
  *
  * All external consumers import from here only.
  */

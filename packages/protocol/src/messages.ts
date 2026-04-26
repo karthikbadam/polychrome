@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — messages.ts
+ * @polychrome/protocol - messages.ts
  *
  * Message type discriminated unions for:
  *   - SW ↔ content script (chrome.runtime.connect)

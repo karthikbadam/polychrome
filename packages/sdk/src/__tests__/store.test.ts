@@ -1,5 +1,5 @@
 /**
- * store.test.ts — Shared<T> tests
+ * store.test.ts - Shared<T> tests
  */
 
 import type { BridgeEnvelope } from '@polychrome/protocol';

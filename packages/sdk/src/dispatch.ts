@@ -1,11 +1,11 @@
 /**
- * dispatch.ts — postMessage bridge bus
+ * dispatch.ts - postMessage bridge bus
  *
  * The SDK runs in MAIN world; it talks to the content script via
  * window.postMessage using BridgeEnvelope from @polychrome/protocol.
  *
- * send()   — wraps a BridgeMsg in a BridgeEnvelope and posts to window.
- * listen() — filters incoming postMessage events for BridgeEnvelopes
+ * send()   - wraps a BridgeMsg in a BridgeEnvelope and posts to window.
+ * listen() - filters incoming postMessage events for BridgeEnvelopes
  *            and invokes the callback.
  */
 

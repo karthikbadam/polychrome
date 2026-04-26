@@ -1,5 +1,5 @@
 /**
- * @polychrome/ot-core — public API
+ * @polychrome/ot-core - public API
  *
  * All consumers must import from '@polychrome/ot-core' only.
  * No deep imports are allowed.

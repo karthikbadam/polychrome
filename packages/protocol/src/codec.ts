@@ -1,8 +1,8 @@
 /**
- * @polychrome/protocol — codec.ts
+ * @polychrome/protocol - codec.ts
  *
- * encode(env: Envelope): string — serialize to wire format
- * decode(s: string): Envelope  — deserialize from wire format
+ * encode(env: Envelope): string - serialize to wire format
+ * decode(s: string): Envelope  - deserialize from wire format
  *
  * v1: JSON.  The switch on `v` future-proofs the format.
  * Throws on unknown envelope type or version mismatch.
@@ -45,7 +45,7 @@ export function encode(env: Envelope): string {
       return JSON.stringify(env);
     default: {
       // TypeScript narrows this to `never` if Envelope.v is exhaustive,
-      // but at runtime future versions could arrive — treat as unknown.
+      // but at runtime future versions could arrive - treat as unknown.
       const _exhaustive: never = env.v;
       throw new Error(`encode: unknown protocol version ${String(_exhaustive)}`);
     }
@@ -70,7 +70,7 @@ export function decode(s: string): Envelope {
     parsed = JSON.parse(s);
   } catch (err) {
     log.error('codec.decode: invalid JSON', err);
-    throw new CodecError(`decode: invalid JSON — ${String(err)}`);
+    throw new CodecError(`decode: invalid JSON - ${String(err)}`);
   }
 
   if (typeof parsed !== 'object' || parsed === null) {

@@ -1,4 +1,4 @@
-# Track P — Demo Site & GitHub Pages Publish
+# Track P - Demo Site & GitHub Pages Publish
 
 **Wave**: 5 (after F, O)
 **Depends on**: A, F, O
@@ -37,23 +37,23 @@ Users can:
 
 ## Files I own (exclusive)
 
-- `apps/landing/` — new app
+- `apps/landing/` - new app
   - `apps/landing/package.json`
   - `apps/landing/vite.config.ts`
   - `apps/landing/index.html`
   - `apps/landing/src/main.ts`
   - `apps/landing/src/style.css`
-  - `apps/landing/public/` — favicons, screenshots
-- `.github/workflows/pages.yml` — build + deploy workflow
-- `scripts/build-gh-pages.sh` — orchestrates the multi-app build into
+  - `apps/landing/public/` - favicons, screenshots
+- `.github/workflows/pages.yml` - build + deploy workflow
+- `scripts/build-gh-pages.sh` - orchestrates the multi-app build into
   one publish directory
-- `docs/PUBLISH.md` — runbook for manual publish if needed
+- `docs/PUBLISH.md` - runbook for manual publish if needed
 
 ## What I do NOT touch
 
-- `examples/*` — those are owned by Track O. I consume their `dist/`
+- `examples/*` - those are owned by Track O. I consume their `dist/`
   output.
-- `apps/extension/` — owned by other tracks. I consume its `dist/`
+- `apps/extension/` - owned by other tracks. I consume its `dist/`
   to package the .zip.
 
 ## Build pipeline (scripts/build-gh-pages.sh)
@@ -81,7 +81,7 @@ cp -r apps/landing/dist/* "$OUT/"
 # 5. Package the unpacked extension
 ( cd apps/extension && zip -r "../../$OUT/extension.zip" dist/ )
 
-# 6. (Optional) render docs/plan/*.md to HTML — use a small script if needed
+# 6. (Optional) render docs/plan/*.md to HTML - use a small script if needed
 
 echo "Site staged at $OUT/"
 ```
@@ -110,17 +110,17 @@ Use an env var `PC_PUBLISH_BASE` so local dev still uses `/`.
 
 Single-page, no framework needed. Plain HTML + CSS. Include:
 
-1. **Hero** — "PolyChrome 2.0 — collaborative web visualization, in
+1. **Hero** - "PolyChrome 2.0 - collaborative web visualization, in
    your browser." Tagline + screenshot.
-2. **What is it** — three paragraphs from `docs/plan/README.md`
+2. **What is it** - three paragraphs from `docs/plan/README.md`
    tldr.
-3. **Try the demos** — three big cards linking to the examples.
-4. **Install the extension** — three numbered steps (download zip,
+3. **Try the demos** - three big cards linking to the examples.
+4. **Install the extension** - three numbered steps (download zip,
    extract, load unpacked). Big download button.
-5. **For developers** — link to the GitHub repo and `docs/plan/`.
-6. **Credit** — link to the original 2014 paper.
+5. **For developers** - link to the GitHub repo and `docs/plan/`.
+6. **Credit** - link to the original 2014 paper.
 
-Use Chakra UI v3? **No** — landing should be zero-dep static HTML/CSS.
+Use Chakra UI v3? **No** - landing should be zero-dep static HTML/CSS.
 The plan's "Chakra v3 for all React UI" rule applies to extension
 surfaces, not marketing pages.
 
@@ -140,7 +140,7 @@ surfaces, not marketing pages.
 
 - Confirm with the user that the GH Pages source is set to
   "GitHub Actions" in the repo settings before pushing the workflow.
-- The landing page should clearly state "v0.1 — under active
+- The landing page should clearly state "v0.1 - under active
   development" since most extension features aren't wired yet.
 - For the docs/ section, you can either: (a) skip it for v1; (b) use
   a minimal markdown-to-html script (e.g. `marked`); (c) point to

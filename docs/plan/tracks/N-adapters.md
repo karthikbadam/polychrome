@@ -1,4 +1,4 @@
-# Track N — Site Adapters
+# Track N - Site Adapters
 
 **Wave**: 5 (after F, J)
 **Depends on**: A, B, F, J
@@ -13,9 +13,9 @@ and wires them to `window.polychrome` calls.
 
 ## Files I own (exclusive)
 
-- `apps/extension/src/adapters/index.ts` — registry + `getAdapter(url)`
-- `apps/extension/src/adapters/_base/Adapter.ts` — base interface
-- `apps/extension/src/adapters/_base/utils.ts` — DOM helpers
+- `apps/extension/src/adapters/index.ts` - registry + `getAdapter(url)`
+- `apps/extension/src/adapters/_base/Adapter.ts` - base interface
+- `apps/extension/src/adapters/_base/utils.ts` - DOM helpers
 - `apps/extension/src/adapters/observable/index.ts`
 - `apps/extension/src/adapters/observable/__tests__/**`
 - `apps/extension/src/adapters/vega-editor/index.ts`
@@ -71,7 +71,7 @@ export type AdapterCapability =
 ### `blocks` (bl.ocks.org archives)
 - Matches: `https://bl.ocks.org/*`
 - Many bl.ocks examples are static D3 demos. Default to "share all
-  click/hover events with selectors" — relies on the generic capture
+  click/hover events with selectors" - relies on the generic capture
   path with no app-state knowledge.
 
 ### `tableau-public`
@@ -113,7 +113,7 @@ For each adapter:
 
 ## Notes for the agent
 
-- This track is *very* parallelizable internally — each adapter is
+- This track is *very* parallelizable internally - each adapter is
   independent. If you want, dispatch sub-subagents per adapter.
 - Be respectful of the host sites' DOM: never modify nodes; only
   attach listeners and call public APIs.

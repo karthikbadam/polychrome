@@ -1,4 +1,4 @@
-# Track L — Devtools Panel
+# Track L - Devtools Panel
 
 **Wave**: 5 (after H)
 **Depends on**: A, B, H
@@ -10,19 +10,19 @@ A Chrome devtools panel for inspecting the OT op stream, leader
 elections, transforms, and conflicts in real time. Built with React +
 Chakra UI v3.
 
-This is the developer-facing inspection surface — not for end users.
+This is the developer-facing inspection surface - not for end users.
 
 ## Files I own (exclusive)
 
-- `apps/extension/src/ui/devtools/devtools.html` — bootstraps panel
-- `apps/extension/src/ui/devtools/devtools.ts` — registers the panel
+- `apps/extension/src/ui/devtools/devtools.html` - bootstraps panel
+- `apps/extension/src/ui/devtools/devtools.ts` - registers the panel
 - `apps/extension/src/ui/devtools/panel.html`
-- `apps/extension/src/ui/devtools/panel.tsx` — React entry
+- `apps/extension/src/ui/devtools/panel.tsx` - React entry
 - `apps/extension/src/ui/devtools/App.tsx`
 - `apps/extension/src/ui/devtools/views/OpStream.tsx`
 - `apps/extension/src/ui/devtools/views/Leader.tsx`
 - `apps/extension/src/ui/devtools/views/State.tsx`
-- `apps/extension/src/ui/devtools/views/Transforms.tsx` — visualizes
+- `apps/extension/src/ui/devtools/views/Transforms.tsx` - visualizes
   transform pairs as they happen
 - `apps/extension/src/ui/devtools/components/OpJsonView.tsx`
 - `apps/extension/src/ui/devtools/state/store.ts`
@@ -52,12 +52,12 @@ extra additions if Track K already added them at workspace root.
 ```
 
 Tabs:
-1. **Op Stream** — virtualized table of ops (live), click to expand
+1. **Op Stream** - virtualized table of ops (live), click to expand
    JSON.
-2. **Leader** — current leader actorId, last heartbeat, election
+2. **Leader** - current leader actorId, last heartbeat, election
    history (last 20 events).
-3. **State** — current `SharedStateView` as a tree explorer.
-4. **Transforms** — when a non-identity transform happens, show the
+3. **State** - current `SharedStateView` as a tree explorer.
+4. **Transforms** - when a non-identity transform happens, show the
    pair (a, b) and the result (b'). Useful for verifying OT
    behavior in dev.
 

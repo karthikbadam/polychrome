@@ -4,7 +4,7 @@
  * Cursor-coalescing throttle at a maximum of 30Hz (one flush per ~33ms).
  *
  * Design constraints:
- *  - MUST use setTimeout(fn, 33) — NOT requestAnimationFrame.
+ *  - MUST use setTimeout(fn, 33) - NOT requestAnimationFrame.
  *    Code may run inside a MV3 Service Worker which has no rAF.
  *  - Only the LAST payload per flush window is sent (coalescing).
  *  - Does nothing if the payload hasn't changed since the last send.

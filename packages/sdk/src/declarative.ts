@@ -1,12 +1,12 @@
 /**
- * declarative.ts — data-pc-* attribute scanner
+ * declarative.ts - data-pc-* attribute scanner
  *
  * Scans the DOM for elements tagged with data-pc-* attributes and
  * auto-wires them to the SDK:
  *
- *   data-pc-share="key"        — two-way bind to a shared key
- *   data-pc-checkpoint="label" — click fires a checkpoint
- *   data-pc-list="listId"      — subscribe to a SharedList (read-only display)
+ *   data-pc-share="key"        - two-way bind to a shared key
+ *   data-pc-checkpoint="label" - click fires a checkpoint
+ *   data-pc-list="listId"      - subscribe to a SharedList (read-only display)
  *
  * Runs on DOMContentLoaded and sets up a MutationObserver for dynamic inserts.
  */
@@ -147,7 +147,7 @@ function scanRoot(root: Element | Document, api: PolyChromeApi): void {
 }
 
 // ---------------------------------------------------------------------------
-// Public: initDeclarative — call once per page with the api instance
+// Public: initDeclarative - call once per page with the api instance
 // ---------------------------------------------------------------------------
 
 /**

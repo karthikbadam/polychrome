@@ -1,5 +1,5 @@
 /**
- * invert.ts — Pure inverse function for every persistent op kind.
+ * invert.ts - Pure inverse function for every persistent op kind.
  *
  * invert(op, state) returns an Operation that, when applied after op,
  * restores the state to what it was before op was applied.
@@ -59,7 +59,7 @@ function base(op: Operation): Omit<Operation, 'kind' | 'payload'> {
  */
 function noopOf(op: Operation): Operation {
   // We cast through unknown to attach the extra sentinel field without
-  // violating the OpPayload union — the `applied` field is a runtime guard
+  // violating the OpPayload union - the `applied` field is a runtime guard
   // only; it is never exposed as part of the public payload type.
   const noopPayload = { ...(op.payload as object), applied: false } as unknown as Operation['payload'];
   return {
@@ -172,7 +172,7 @@ export function invert(op: Operation, state: State): Operation {
 
     // -----------------------------------------------------------------------
     case 'undo': {
-      // undo of an undo is a redo — emit another undo referencing the same
+      // undo of an undo is a redo - emit another undo referencing the same
       // targetSeq so the engine re-applies the original op.
       const p   = op.payload as UndoPayload;
       const inv: Operation = {

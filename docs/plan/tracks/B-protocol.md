@@ -1,4 +1,4 @@
-# Track B — Protocol Package
+# Track B - Protocol Package
 
 **Wave**: 2 (after A; blocks waves 3+)
 **Depends on**: A (scaffold)
@@ -6,7 +6,7 @@
 
 ## Goal
 
-Implement `@polychrome/protocol` — the canonical type & helper package
+Implement `@polychrome/protocol` - the canonical type & helper package
 every other module depends on. Pure TypeScript; no DOM, no chrome.*.
 
 ## Files I own (exclusive)
@@ -48,9 +48,9 @@ Implement everything specified in `docs/plan/02-protocol.md` and
 - Round-trip 1px tolerance test.
 
 ### `target.ts`
-- `TargetRef.from(element: Element): TargetRef` — prefers ID, falls
+- `TargetRef.from(element: Element): TargetRef` - prefers ID, falls
   back to xpath, includes rect & text.
-- `TargetRef.resolve(ref: TargetRef, doc?: Document): Element | null` —
+- `TargetRef.resolve(ref: TargetRef, doc?: Document): Element | null` -
   selector → xpath → elementFromPoint → text-prefix.
 - DOM dependency: import types from `lib.dom.d.ts`; runtime usage is
   only in the `resolve` function, which Node tests skip with a guard.
@@ -66,15 +66,15 @@ Implement everything specified in `docs/plan/02-protocol.md` and
 
 ### `logger.ts`
 - Tiny structured logger. `log.info`, `log.warn`, `log.error`,
-  `log.debug` — namespaced; respects `localStorage.PC_LOG_LEVEL` /
+  `log.debug` - namespaced; respects `localStorage.PC_LOG_LEVEL` /
   `process.env.PC_LOG_LEVEL`.
 - All callers must use this; **no `console.log` allowed** anywhere
   else in the codebase (lint rule from Track A enforces this).
 
 ### `ids.ts`
-- `newSessionId(): SessionId` — 6-char base32 (Crockford), 32 bits of
+- `newSessionId(): SessionId` - 6-char base32 (Crockford), 32 bits of
   entropy plus a checksum char (so 6 chars total).
-- `newActorId(): ActorId` — UUIDv4.
+- `newActorId(): ActorId` - UUIDv4.
 
 ## Public API
 
@@ -111,5 +111,5 @@ Per `docs/plan/02-protocol.md`:
 - Use branded types via `type Brand<T, B> = T & { readonly __brand: B }`
   pattern; export brand-aware constructors only.
 - `id` selectors must be CSS.escape-d.
-- Do not import `chrome.*` types — UI/extension code that needs them
+- Do not import `chrome.*` types - UI/extension code that needs them
   pulls `@types/chrome` itself.

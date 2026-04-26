@@ -1,5 +1,5 @@
 /**
- * dispatch.test.ts — bridge bus tests
+ * dispatch.test.ts - bridge bus tests
  */
 
 import type { BridgeEnvelope } from '@polychrome/protocol';

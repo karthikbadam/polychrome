@@ -1,5 +1,5 @@
 /**
- * peers.ts — local cache of recent peers' display info.
+ * peers.ts - local cache of recent peers' display info.
  */
 
 import { makeLogger } from '@polychrome/protocol';

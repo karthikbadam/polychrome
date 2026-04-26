@@ -1,4 +1,4 @@
-# 01 — System Architecture
+# 01 - System Architecture
 
 ## Process boundaries
 
@@ -52,24 +52,24 @@ profile running the extension. There is no central application server.
 
 ## Data flow: a local user clicks a button
 
-1. **Capture** — `content.ts` listens on `document` in the capture phase.
+1. **Capture** - `content.ts` listens on `document` in the capture phase.
    The native `click` event arrives. The handler:
-   - Checks `event.isPolyChrome` — if set, this is a re-dispatched remote
+   - Checks `event.isPolyChrome` - if set, this is a re-dispatched remote
      event; ignore to avoid loops.
    - Asks the page bridge whether the target element is "shareable" (the
      adapter for this site decides).
    - Builds an `Operation { kind: 'dom_event', payload: ... }` (see
      `02-protocol.md`).
-2. **To background** — content script forwards via `chrome.runtime`
+2. **To background** - content script forwards via `chrome.runtime`
    port to the service worker.
-3. **OT submit** — service worker calls `ot.submit(op)`. If this peer is
+3. **OT submit** - service worker calls `ot.submit(op)`. If this peer is
    the sequencer-leader, it assigns `seq` immediately; otherwise it sends
    the op to the leader over the mesh and awaits the assigned `seq`.
-4. **Persist** — service worker appends to IndexedDB (`op_log` store).
-5. **Broadcast** — service worker sends the op to all other peers over
+4. **Persist** - service worker appends to IndexedDB (`op_log` store).
+5. **Broadcast** - service worker sends the op to all other peers over
    their datachannels. Each peer receives, transforms against any
    concurrent ops, persists, and forwards to its own content scripts.
-6. **Re-dispatch** — receiving peers' content scripts re-construct the
+6. **Re-dispatch** - receiving peers' content scripts re-construct the
    DOM event with `isPolyChrome = true` and `dispatchEvent` it on the
    resolved target. The page reacts as if the local user clicked.
 
@@ -81,7 +81,7 @@ profile running the extension. There is no central application server.
 4. Service worker finds the **nearest snapshot** at `seq <= T` in
    IndexedDB and sends a `replay/restore` to all content scripts.
 5. Content scripts wipe the page (or restore via rrweb's player into a
-   sandbox iframe; design choice — see `06-replay.md`) and apply the
+   sandbox iframe; design choice - see `06-replay.md`) and apply the
    snapshot.
 6. Service worker streams ops from `snapshot.seq + 1` to `T` to content
    scripts at playback speed; each op is dispatched through the same

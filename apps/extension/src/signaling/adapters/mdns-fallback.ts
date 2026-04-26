@@ -31,7 +31,7 @@ import type { AdapterSignalingMessage, SignalingAdapter, Unsubscribe } from '../
 const log = makeLogger('signaling:mdns');
 
 export const MDNS_NOT_IMPLEMENTED_REASON =
-  'mdns-fallback: not implemented in v1 — no stable mDNS API in Chrome MV3';
+  'mdns-fallback: not implemented in v1 - no stable mDNS API in Chrome MV3';
 
 export class MdnsFallbackAdapter implements SignalingAdapter {
   async join(_sessionId: SessionId, _actorId: ActorId): Promise<void> {

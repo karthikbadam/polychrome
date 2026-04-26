@@ -78,7 +78,7 @@ export class MockPeerConnection {
   private remoteDesc: RTCSessionDescriptionInit | null = null;
   private channels: MockDataChannel[] = [];
 
-  /** Remote side — linked by createPair(). */
+  /** Remote side - linked by createPair(). */
   remote: MockPeerConnection | null = null;
 
   closed = false;
@@ -216,7 +216,7 @@ export function createMockRtcPair(): {
   pcA.setRemoteDescription = async (desc) => {
     await origSetRemA(desc);
     if (desc.type === 'answer') {
-      // A just got the answer — link channels
+      // A just got the answer - link channels
       pcA.linkChannels();
     }
   };

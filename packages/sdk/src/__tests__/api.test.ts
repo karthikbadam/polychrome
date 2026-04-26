@@ -1,5 +1,5 @@
 /**
- * api.test.ts — PolyChromeApi tests
+ * api.test.ts - PolyChromeApi tests
  */
 
 import type { BridgeEnvelope } from '@polychrome/protocol';

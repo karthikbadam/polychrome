@@ -1,5 +1,5 @@
 /**
- * lists.ts — SharedList<T> ordered-list helpers
+ * lists.ts - SharedList<T> ordered-list helpers
  *
  * list() returns a SharedList<T> bound to a named list ID.
  * Operations are translated to page/list_op bridge messages.

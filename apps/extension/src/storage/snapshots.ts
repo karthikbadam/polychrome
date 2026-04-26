@@ -1,10 +1,10 @@
 /**
- * snapshots.ts — snapshots store operations.
+ * snapshots.ts - snapshots store operations.
  *
- * putSnapshot  — gzip the raw data before storing.
- * nearestSnapshot — walk cursor backward from beforeSeq to find the
+ * putSnapshot  - gzip the raw data before storing.
+ * nearestSnapshot - walk cursor backward from beforeSeq to find the
  *                   most recent snapshot of the given type.
- * listSnapshots — all snapshots for a session (metadata, no data inflation).
+ * listSnapshots - all snapshots for a session (metadata, no data inflation).
  */
 
 import { makeLogger } from '@polychrome/protocol';

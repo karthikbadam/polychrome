@@ -1,4 +1,4 @@
-# Track A — Scaffold
+# Track A - Scaffold
 
 **Wave**: 1 (must complete before any other track starts)
 **Depends on**: nothing
@@ -22,7 +22,7 @@ build, lint, test, and CI plumbing.
 - `.eslintrc.cjs`
 - `vitest.config.ts` (root, shared config)
 - `.github/workflows/ci.yml`
-- `legacy/**` — move all 2014 files here
+- `legacy/**` - move all 2014 files here
 - Stub `package.json` + `src/index.ts` + `tsconfig.json` for every
   package and app folder defined in `01-architecture.md`
 - Stub `apps/extension/manifest.json`
@@ -31,7 +31,7 @@ build, lint, test, and CI plumbing.
 ## Files I do NOT touch
 
 - Anything under `apps/extension/src/<feature>/` beyond an `index.ts`
-  stub re-exporting `{}` — those are owned by other tracks.
+  stub re-exporting `{}` - those are owned by other tracks.
 - Anything under `packages/<x>/src/` beyond `index.ts` re-export stub.
 
 ## Steps
@@ -76,9 +76,9 @@ build, lint, test, and CI plumbing.
 10. **CI workflow.** `.github/workflows/ci.yml`: pnpm install, lint,
     typecheck, test, build. No deploy step in v1.
 11. **README at repo root.** Replace with a short pointer:
-    "PolyChrome 2.0 — see `docs/plan/README.md` for architecture and
+    "PolyChrome 2.0 - see `docs/plan/README.md` for architecture and
     implementation roadmap. Legacy 2014 code archived at `legacy/`."
-12. **CONTRIBUTING.md** — pnpm setup, dev loop, "load unpacked" steps.
+12. **CONTRIBUTING.md** - pnpm setup, dev loop, "load unpacked" steps.
 
 ## Acceptance
 
@@ -100,6 +100,6 @@ build, lint, test, and CI plumbing.
 - Pin pnpm version via `packageManager` field.
 - Pin Node version via `.nvmrc` and `engines`.
 - Pin `@crxjs/vite-plugin` to a known-good version.
-- Do not install Chakra UI here — UI tracks will add it as a workspace
+- Do not install Chakra UI here - UI tracks will add it as a workspace
   dependency.
 - Do not write any business logic. Stubs only.

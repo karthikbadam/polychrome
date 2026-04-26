@@ -1,4 +1,4 @@
-# PolyChrome 2.0 — Implementation Plan
+# PolyChrome 2.0 - Implementation Plan
 
 This directory is the plan, not the code. Read it top-to-bottom, then dispatch
 parallel implementation sessions, one per file under `tracks/`.
@@ -27,13 +27,13 @@ signaling relay. All persistence in IndexedDB.
 
 ## Reading order
 
-1. `01-architecture.md` — system diagram, process boundaries
-2. `02-protocol.md` — **the canonical Operation schema; every track depends on this**
-3. `03-ot-engine.md` — transform functions per op kind, leader election
-4. `04-storage.md` — IndexedDB schema for op log + snapshots
-5. `05-signaling.md` — signaling adapter contract (PeerJS / P2PCF / custom)
-6. `06-replay.md` — snapshot cadence, scrubbing, branching, undo
-7. `07-extension-runtime.md` — message routing across SW / content / MAIN-world
+1. `01-architecture.md` - system diagram, process boundaries
+2. `02-protocol.md` - **the canonical Operation schema; every track depends on this**
+3. `03-ot-engine.md` - transform functions per op kind, leader election
+4. `04-storage.md` - IndexedDB schema for op log + snapshots
+5. `05-signaling.md` - signaling adapter contract (PeerJS / P2PCF / custom)
+6. `06-replay.md` - snapshot cadence, scrubbing, branching, undo
+7. `07-extension-runtime.md` - message routing across SW / content / MAIN-world
 
 ## Parallelization graph
 
@@ -92,7 +92,7 @@ signaling relay. All persistence in IndexedDB.
 - **Wave 4** (5-way parallel): K, L, M, N, O
 - **Wave 5** (sequential): Z
 
-Tracks within a wave have **non-overlapping file ownership** — see each
+Tracks within a wave have **non-overlapping file ownership** - see each
 track file's "Files I own" section. Use `git worktree`-isolated Claude
 Code sessions for true parallelism.
 

@@ -1,5 +1,5 @@
 /**
- * Choropleth example — shared US states choropleth using @polychrome/sdk
+ * Choropleth example - shared US states choropleth using @polychrome/sdk
  *
  * Works standalone (local-only) when window.polychrome is absent.
  * When connected, year slider and pinned states are shared across peers.

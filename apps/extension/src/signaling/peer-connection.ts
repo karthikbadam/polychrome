@@ -3,8 +3,8 @@
  *
  * Wraps a single RTCPeerConnection between us and one remote peer.
  * Manages two RTCDataChannels:
- *   - `ops`    (reliable, ordered — default datachannel options)
- *   - `cursor` (unreliable, unordered — { ordered: false, maxRetransmits: 0 })
+ *   - `ops`    (reliable, ordered - default datachannel options)
+ *   - `cursor` (unreliable, unordered - { ordered: false, maxRetransmits: 0 })
  *
  * SDP offer/answer and ICE candidate exchange are routed through the
  * SignalingAdapter.  This class does NOT call the adapter's `join/leave`
@@ -160,7 +160,7 @@ export class PeerConnection {
       }
 
       case 'hello':
-        // Hello at signaling layer (before data channels are open) — ignore.
+        // Hello at signaling layer (before data channels are open) - ignore.
         // The proper hello flows over the ops data channel.
         break;
 

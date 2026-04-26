@@ -1,5 +1,5 @@
 /**
- * checkpoint.ts — Named bookmark in the shared timeline.
+ * checkpoint.ts - Named bookmark in the shared timeline.
  *
  * Sends a page/checkpoint bridge message so the content script can
  * forward it to the service worker as a checkpoint operation.

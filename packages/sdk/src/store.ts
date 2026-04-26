@@ -1,8 +1,8 @@
 /**
- * store.ts — Shared<T> key-value primitives
+ * store.ts - Shared<T> key-value primitives
  *
- * share()     — returns a Shared<T> bound to a named key.
- * subscribe() — read-only subscription shorthand.
+ * share()     - returns a Shared<T> bound to a named key.
+ * subscribe() - read-only subscription shorthand.
  */
 
 import { makeLogger } from '@polychrome/protocol';

@@ -7,12 +7,12 @@ WebRTC mesh + pluggable signaling layer for PolyChrome 2.0.
 | File | Purpose |
 |---|---|
 | `adapter.ts` | `SignalingAdapter` interface + `AdapterSignalingMessage` type |
-| `mesh.ts` | `MeshManager` — session lifecycle, peer tracking, broadcast |
+| `mesh.ts` | `MeshManager` - session lifecycle, peer tracking, broadcast |
 | `peer-connection.ts` | Single-peer RTCPeerConnection + two data channels |
 | `throttle.ts` | Cursor coalescer at ≤30Hz (setTimeout, not rAF) |
 | `adapters/peerjs-public.ts` | Adapter using public peerjs.com broker |
 | `adapters/p2pcf-worker.ts` | Adapter using bring-your-own Cloudflare Worker |
-| `adapters/mdns-fallback.ts` | Spike placeholder — throws `not-implemented` in v1 |
+| `adapters/mdns-fallback.ts` | Spike placeholder - throws `not-implemented` in v1 |
 | `adapters/conformance.ts` | Shared conformance test suite for all adapters |
 | `index.ts` | Public re-exports |
 

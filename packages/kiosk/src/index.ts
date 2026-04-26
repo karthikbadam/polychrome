@@ -1,14 +1,14 @@
 /**
- * @polychrome/kiosk — drop-in `window.polychrome` for self-hosted demos.
+ * @polychrome/kiosk - drop-in `window.polychrome` for self-hosted demos.
  *
  * Demos can run in three modes:
  *
- *   auto       (default) — if the extension has injected window.polychrome
+ *   auto       (default) - if the extension has injected window.polychrome
  *                          before installKiosk() runs, use it. Otherwise
  *                          install the y-websocket kiosk transport.
- *   kiosk                — always install the kiosk transport, even if the
+ *   kiosk                - always install the kiosk transport, even if the
  *                          extension is present.
- *   extension            — wait up to extensionTimeoutMs for the extension
+ *   extension            - wait up to extensionTimeoutMs for the extension
  *                          to inject; if it doesn't, show a "needs extension"
  *                          banner and do nothing else.
  *
@@ -116,7 +116,7 @@ function waitForExtension(timeoutMs: number): void {
     if (Date.now() - t0 > timeoutMs) {
       clearInterval(id);
       showBadge(
-        'PolyChrome extension required — switch to ?mode=kiosk to try without it',
+        'PolyChrome extension required - switch to ?mode=kiosk to try without it',
         'warn',
       );
     }
@@ -166,7 +166,7 @@ function installKioskTransport(opts: KioskOptions): void {
       provider.disconnect();
       provider.destroy();
     } catch {
-      // ignore — fired during page close, nothing to recover
+      // ignore - fired during page close, nothing to recover
     }
   };
   window.addEventListener('pagehide', cleanup);

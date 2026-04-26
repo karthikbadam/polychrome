@@ -1,4 +1,4 @@
-# Track D — Storage (IndexedDB)
+# Track D - Storage (IndexedDB)
 
 **Wave**: 3 (parallel with C, E, F, G)
 **Depends on**: A, B
@@ -13,23 +13,23 @@ the only consumer.
 ## Files I own (exclusive)
 
 - `apps/extension/src/storage/index.ts`
-- `apps/extension/src/storage/db.ts` — open + migrations
+- `apps/extension/src/storage/db.ts` - open + migrations
 - `apps/extension/src/storage/sessions.ts`
 - `apps/extension/src/storage/op-log.ts`
 - `apps/extension/src/storage/snapshots.ts`
 - `apps/extension/src/storage/identity.ts`
 - `apps/extension/src/storage/peers.ts`
-- `apps/extension/src/storage/export.ts` — zip out
-- `apps/extension/src/storage/import.ts` — zip in
-- `apps/extension/src/storage/types.ts` — local record types
-- `apps/extension/src/storage/__tests__/**` — unit tests with
+- `apps/extension/src/storage/export.ts` - zip out
+- `apps/extension/src/storage/import.ts` - zip in
+- `apps/extension/src/storage/types.ts` - local record types
+- `apps/extension/src/storage/__tests__/**` - unit tests with
   `fake-indexeddb`
 
 ## Dependencies to add
 
-- `idb` (jakearchibald/idb) — IndexedDB wrapper
-- `fflate` — zip + gzip for export/import
-- `fake-indexeddb` (dev) — for tests
+- `idb` (jakearchibald/idb) - IndexedDB wrapper
+- `fflate` - zip + gzip for export/import
+- `fake-indexeddb` (dev) - for tests
 
 ## Spec
 
@@ -38,23 +38,23 @@ schema, indexes, cadence, and export/import format are normative.
 
 ## Implementation order
 
-1. `db.ts` — `openPolychromeDB(): Promise<IDBPDatabase>`. v1 schema,
+1. `db.ts` - `openPolychromeDB(): Promise<IDBPDatabase>`. v1 schema,
    migration scaffold for future versions.
-2. `types.ts` — `SessionRecord`, `OpLogRecord`, `SnapshotRecord`,
+2. `types.ts` - `SessionRecord`, `OpLogRecord`, `SnapshotRecord`,
    `IdentityRecord`, `PeerRecord`. (Not in protocol because they're
    storage-internal.)
-3. `sessions.ts` — CRUD + `touchSession`.
-4. `op-log.ts` — `appendOp` (single txn), `appendOps` (batched txn),
+3. `sessions.ts` - CRUD + `touchSession`.
+4. `op-log.ts` - `appendOp` (single txn), `appendOps` (batched txn),
    `getOps` returning `AsyncIterable` (use IDBP cursor),
    `lastSeq` (cursor descending), `countOps`.
-5. `snapshots.ts` — `putSnapshot` (gzip the data with fflate before
+5. `snapshots.ts` - `putSnapshot` (gzip the data with fflate before
    storing), `nearestSnapshot` (cursor walking backward from
    `beforeSeq`).
-6. `identity.ts` — get/update with `'self'` key.
-7. `peers.ts` — touch on every observed peer.
-8. `export.ts` — write `manifest.json` + `session.json` + `ops.jsonl`
+6. `identity.ts` - get/update with `'self'` key.
+7. `peers.ts` - touch on every observed peer.
+8. `export.ts` - write `manifest.json` + `session.json` + `ops.jsonl`
    + `snapshots/*.json.gz` + `peers.json` into a single Blob.
-9. `import.ts` — parse zip, validate manifest version, allocate new
+9. `import.ts` - parse zip, validate manifest version, allocate new
    `sessionId`, write everything in a single big txn (or chunked if
    > 50MB).
 
@@ -90,7 +90,7 @@ Per `docs/plan/04-storage.md`:
 - Composite keys: pass `[sessionId, seq]` as the key; store doesn't
   hold a `keyPath` so we can omit those fields from the record (or
   duplicate; choose duplicate for query convenience).
-- Use `structuredClone` semantics — don't pre-serialize Operations to
+- Use `structuredClone` semantics - don't pre-serialize Operations to
   JSON; let IDB store them as objects.
 - The `fflate` package works in workers (no DOM); use the worker entry
   to keep the SW responsive on big snapshots.

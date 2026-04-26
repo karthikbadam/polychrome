@@ -1,5 +1,5 @@
 /**
- * transform.ts — Pure OT transform function.
+ * transform.ts - Pure OT transform function.
  *
  * transform(a, b) returns b' such that:
  *   apply(b', apply(a, s)) ≡ apply(transform(b,a), apply(b, s))   (TP1)
@@ -64,10 +64,10 @@ function lwwWins(seqA: Seq, seqB: Seq): boolean {
  * Transform operation `b` against concurrent operation `a`.
  *
  * Both ops share the same parentSeq (they are concurrent).
- * Returns b' — the adjusted version of b that should be applied
+ * Returns b' - the adjusted version of b that should be applied
  * after a has already been applied to the state.
  *
- * Pure function — no side effects.
+ * Pure function - no side effects.
  */
 export function transform(a: Operation, b: Operation): Operation {
   switch (a.kind) {
@@ -85,7 +85,7 @@ export function transform(a: Operation, b: Operation): Operation {
       const ap = a.payload as StateSetPayload;
       const bp = b.payload as StateSetPayload;
       if (ap.key !== bp.key) return b;
-      // Same key — LWW: higher seq wins; if a wins then b becomes noop.
+      // Same key - LWW: higher seq wins; if a wins then b becomes noop.
       if (lwwWins(a.seq, b.seq)) {
         return noop(b);
       }
@@ -102,11 +102,11 @@ export function transform(a: Operation, b: Operation): Operation {
           const bp = b.payload as ListInsertPayload;
           if (bp.listId !== al) return b;
           if (ai < bp.index) {
-            // a inserts strictly before b — shift b right.
+            // a inserts strictly before b - shift b right.
             return withPayload(b, { index: bp.index + 1 });
           }
           if (ai === bp.index) {
-            // Same insertion point — break tie by actorId so TP1 holds.
+            // Same insertion point - break tie by actorId so TP1 holds.
             // The op from the lexicographically-smaller actorId occupies the
             // lower slot; the other op shifts right.
             if (a.actorId < b.actorId) {
@@ -119,7 +119,7 @@ export function transform(a: Operation, b: Operation): Operation {
         case 'list_delete': {
           const bp = b.payload as ListDeletePayload;
           if (bp.listId !== al) return b;
-          // a inserts before or at b's delete index — the deletion target
+          // a inserts before or at b's delete index - the deletion target
           // shifts right by one.
           if (ai <= bp.index) {
             return withPayload(b, { index: bp.index + 1 });
@@ -141,11 +141,11 @@ export function transform(a: Operation, b: Operation): Operation {
         case 'list_insert': {
           const bp = b.payload as ListInsertPayload;
           if (bp.listId !== al) return b;
-          // a deleted an element before b's insertion point — shift b left.
+          // a deleted an element before b's insertion point - shift b left.
           if (ai < bp.index) {
             return withPayload(b, { index: bp.index - 1 });
           }
-          // If ai === bp.index, b inserts at the now-vacated slot — keep it.
+          // If ai === bp.index, b inserts at the now-vacated slot - keep it.
           return b;
         }
 
@@ -153,7 +153,7 @@ export function transform(a: Operation, b: Operation): Operation {
           const bp = b.payload as ListDeletePayload;
           if (bp.listId !== al) return b;
           if (ai === bp.index) {
-            // Both try to delete the same element — b becomes noop.
+            // Both try to delete the same element - b becomes noop.
             return noop(b);
           }
           if (ai < bp.index) {
@@ -194,7 +194,7 @@ export function transform(a: Operation, b: Operation): Operation {
     // -----------------------------------------------------------------------
     case 'undo': {
       if (b.kind !== 'undo') return b;
-      // Both undo the same target — later (higher seq) loses.
+      // Both undo the same target - later (higher seq) loses.
       const au = a.payload as UndoPayload;
       const bu = b.payload as UndoPayload;
       if (au.targetSeq !== bu.targetSeq) return b;
@@ -214,7 +214,7 @@ export function transform(a: Operation, b: Operation): Operation {
 }
 
 /**
- * assertNever helper — compile-time exhaustiveness guard.
+ * assertNever helper - compile-time exhaustiveness guard.
  * @internal
  */
 export function assertNever(x: never): never {

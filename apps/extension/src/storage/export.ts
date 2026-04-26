@@ -1,5 +1,5 @@
 /**
- * export.ts — Export a session as a .polychrome.zip Blob.
+ * export.ts - Export a session as a .polychrome.zip Blob.
  *
  * ZIP layout:
  *   manifest.json
@@ -51,7 +51,7 @@ export async function exportSession(
   }
   const opsJsonl = opLines.join('\n');
 
-  // Snapshots — data is already gzipped as stored
+  // Snapshots - data is already gzipped as stored
   const snapshots = await listSnapshots(db, sessionId);
   const snapshotFiles: Record<string, Uint8Array> = {};
   for (const snap of snapshots) {
@@ -71,7 +71,7 @@ export async function exportSession(
 
   // Add snapshot files under snapshots/
   for (const [name, data] of Object.entries(snapshotFiles)) {
-    // Files are already gzipped — store with no extra compression
+    // Files are already gzipped - store with no extra compression
     files[`snapshots/${name}`] = [data, { level: 0 }];
   }
 

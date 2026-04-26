@@ -1,5 +1,5 @@
 /**
- * import.ts — Import a .polychrome.zip, creating a new session.
+ * import.ts - Import a .polychrome.zip, creating a new session.
  *
  * Validates the manifest version, assigns a new sessionId, and writes
  * everything in a single IDB transaction (chunked if > 50 MB).

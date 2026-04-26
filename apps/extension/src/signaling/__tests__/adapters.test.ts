@@ -5,7 +5,7 @@
  *
  * - peerjs-public: uses an in-memory mock adapter (no real PeerJS server)
  * - p2pcf-worker:  uses an in-memory mock adapter (no real WebSocket)
- * - mdns-fallback: skipped — throws not-implemented by design (documented)
+ * - mdns-fallback: skipped - throws not-implemented by design (documented)
  */
 
 import { describe, it, expect } from 'vitest';
@@ -41,11 +41,11 @@ describe('p2pcf-worker (in-memory mock transport)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// mdns-fallback — not implemented in v1; verify it throws
+// mdns-fallback - not implemented in v1; verify it throws
 // ---------------------------------------------------------------------------
 
 describe('mdns-fallback', () => {
-  it.skip('skipped — not implemented: ' + MDNS_NOT_IMPLEMENTED_REASON, () => {
+  it.skip('skipped - not implemented: ' + MDNS_NOT_IMPLEMENTED_REASON, () => {
     // This skip is intentional and documents the v1 limitation.
   });
 

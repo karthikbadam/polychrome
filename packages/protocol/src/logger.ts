@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — logger.ts
+ * @polychrome/protocol - logger.ts
  *
  * Tiny structured logger.  Every module that needs logging must import
  * `log` from here; raw console.log is banned by the lint rule.

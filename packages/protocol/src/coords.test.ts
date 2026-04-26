@@ -1,5 +1,5 @@
 /**
- * coords.test.ts — round-trip property tests for toIdeal / fromIdeal
+ * coords.test.ts - round-trip property tests for toIdeal / fromIdeal
  */
 import * as fc from 'fast-check';
 import { describe, expect, it } from 'vitest';

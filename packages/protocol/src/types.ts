@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — types.ts
+ * @polychrome/protocol - types.ts
  *
  * Canonical Operation schema and all associated types.
  * Do not change without coordinating across tracks.
@@ -17,7 +17,7 @@ export type Seq       = Brand<number, 'Seq'>;
 export type ClientSeq = Brand<number, 'ClientSeq'>;
 
 // ---------------------------------------------------------------------------
-// TargetRef — addressing a DOM element across peers
+// TargetRef - addressing a DOM element across peers
 // ---------------------------------------------------------------------------
 
 export interface TargetRef {
@@ -45,7 +45,7 @@ export type OpKind =
   | 'kick';
 
 // ---------------------------------------------------------------------------
-// OpPayload — per-kind shapes
+// OpPayload - per-kind shapes
 // ---------------------------------------------------------------------------
 
 export interface DomEventPayload {
@@ -103,7 +103,7 @@ export interface Operation {
 }
 
 // ---------------------------------------------------------------------------
-// SharedStateView — snapshot of the shared key-value store
+// SharedStateView - snapshot of the shared key-value store
 // ---------------------------------------------------------------------------
 
 export type SharedStateView = Record<string, unknown>;

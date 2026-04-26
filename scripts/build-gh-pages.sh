@@ -22,7 +22,7 @@ rm -rf "$OUT"
 mkdir -p "$OUT/examples" "$OUT/docs"
 
 # 2. Build everything (turbo will skip cached steps).
-# Continue past per-package failures — partial publishes are useful in dev.
+# Continue past per-package failures - partial publishes are useful in dev.
 echo "==> building all packages and apps (best-effort)"
 pnpm build || echo "    (some packages failed to build; continuing)"
 

@@ -1,5 +1,5 @@
 /**
- * target.test.ts — from / resolve round-trip on a happy-dom DOM
+ * target.test.ts - from / resolve round-trip on a happy-dom DOM
  *
  * @vitest-environment happy-dom
  */
@@ -112,7 +112,7 @@ describe('target.resolve', () => {
 
   it('returns null when called outside a browser context', () => {
     // Simulate no-document environment by passing a ref with an unknown selector
-    // and no xpath, rect, or text — and call without doc in an env that has document
+    // and no xpath, rect, or text - and call without doc in an env that has document
     // For Node guard: we test the guard via a ref that will fail all strategies
     const ref = {
       selector: '#does-not-exist-xyz-abc',

@@ -1,5 +1,5 @@
 /**
- * Scatterplot example — shared Iris dataset scatter plot using @polychrome/sdk
+ * Scatterplot example - shared Iris dataset scatter plot using @polychrome/sdk
  *
  * Works standalone (local-only) when window.polychrome is absent.
  * When connected, zoom/pan transform and lasso selection are shared.

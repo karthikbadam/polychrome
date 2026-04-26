@@ -1,4 +1,4 @@
-# Track J — MAIN-world Page Bridge
+# Track J - MAIN-world Page Bridge
 
 **Wave**: 4 (after F)
 **Depends on**: A, B, F
@@ -16,9 +16,9 @@ incoming messages from the content script.
 
 ## Files I own (exclusive)
 
-- `apps/extension/src/main-world/page-bridge.ts` — the entrypoint that
+- `apps/extension/src/main-world/page-bridge.ts` - the entrypoint that
   becomes `page-bridge.js` in `dist/`
-- `apps/extension/src/main-world/install.ts` — installer helper
+- `apps/extension/src/main-world/install.ts` - installer helper
 - `apps/extension/src/main-world/__tests__/**`
 
 ## Spec

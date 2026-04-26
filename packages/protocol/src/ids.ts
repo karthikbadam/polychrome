@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — ids.ts
+ * @polychrome/protocol - ids.ts
  *
  * Deterministic, entropy-based ID generators.
  *
@@ -13,7 +13,7 @@
 import type { ActorId, SessionId } from './types.js';
 
 // ---------------------------------------------------------------------------
-// Crockford Base32 alphabet (no I, L, O, U — avoids ambiguity)
+// Crockford Base32 alphabet (no I, L, O, U - avoids ambiguity)
 // ---------------------------------------------------------------------------
 
 const CROCKFORD_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';

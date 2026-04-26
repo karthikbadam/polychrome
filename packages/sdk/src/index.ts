@@ -1,5 +1,5 @@
 /**
- * @polychrome/sdk — public API
+ * @polychrome/sdk - public API
  *
  * All consumers must import from '@polychrome/sdk' only.
  * No deep imports are allowed.

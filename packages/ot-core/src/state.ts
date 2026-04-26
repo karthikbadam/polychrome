@@ -1,9 +1,9 @@
 /**
- * state.ts — In-memory SharedStateView implementation.
+ * state.ts - In-memory SharedStateView implementation.
  *
  * Tracks:
- *   - keys:     Map<string, unknown>            — shared key/value store
- *   - lists:    Map<string, unknown[]>           — named ordered lists
+ *   - keys:     Map<string, unknown>            - shared key/value store
+ *   - lists:    Map<string, unknown[]>           - named ordered lists
  *   - presence: Map<actorId, PresencePayload>
  *   - viewports:Map<actorId, ViewportPayload>
  *

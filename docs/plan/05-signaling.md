@@ -1,4 +1,4 @@
-# 05 — Signaling & WebRTC Mesh
+# 05 - Signaling & WebRTC Mesh
 
 Owned by Track E (`apps/extension/src/signaling/`). Sets up the data
 channels that the OT engine and cursor channel ride on.
@@ -51,11 +51,11 @@ export type SignalingMessage =
 
 ### Adapters shipped in v1
 
-1. **PeerJS public** (`peerjs-public`) — uses `peerjs.com` free server.
+1. **PeerJS public** (`peerjs-public`) - uses `peerjs.com` free server.
    Default for fastest demo experience.
-2. **P2PCF** (`p2pcf-worker`) — bring-your-own-Cloudflare-Worker.
+2. **P2PCF** (`p2pcf-worker`) - bring-your-own-Cloudflare-Worker.
    Recommended for production.
-3. **Local LAN** (`mdns-fallback`) — uses `chrome.mdns` if available
+3. **Local LAN** (`mdns-fallback`) - uses `chrome.mdns` if available
    (no current public API for extensions; spike only).
 
 User picks one in Options. Default = `peerjs-public`.
@@ -108,7 +108,7 @@ Default `iceServers`:
 
 User can add TURN credentials in Options (free tier:
 `openrelay.metered.ca`, paid: Cloudflare). Without TURN, peers behind
-symmetric NATs cannot connect — show a banner.
+symmetric NATs cannot connect - show a banner.
 
 ## Cursor throttling
 

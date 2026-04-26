@@ -1,5 +1,5 @@
 /**
- * sessions.ts — CRUD operations for the `sessions` object store.
+ * sessions.ts - CRUD operations for the `sessions` object store.
  */
 
 import { makeLogger } from '@polychrome/protocol';

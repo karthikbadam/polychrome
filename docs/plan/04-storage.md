@@ -1,4 +1,4 @@
-# 04 — Storage (IndexedDB)
+# 04 - Storage (IndexedDB)
 
 Owned by Track D (`apps/extension/src/storage/`). The service worker is
 the only consumer; UI surfaces query through SW messages.
@@ -38,16 +38,16 @@ Indexes: `lastActiveAt` (for "recent sessions" UI).
 ```
 
 Composite key: `[sessionId, seq]`. Indexes:
-- `[sessionId, ts]` — for time-based queries
-- `[sessionId, kind]` — for filtered timeline views
-- `[sessionId, actorId]` — for "show only my ops"
+- `[sessionId, ts]` - for time-based queries
+- `[sessionId, kind]` - for filtered timeline views
+- `[sessionId, actorId]` - for "show only my ops"
 
 ### `snapshots`
 
 ```ts
 {
   sessionId: SessionId;
-  seq: Seq;                    // composite primary key with sessionId — the seq this snapshot is *after*
+  seq: Seq;                    // composite primary key with sessionId - the seq this snapshot is *after*
   type: 'rrweb' | 'state';
   data: ArrayBuffer;           // gzipped rrweb events or shared-state JSON
   size: number;
@@ -152,7 +152,7 @@ without joining the original room.
 
 - [ ] `init()` is idempotent and migrates correctly.
 - [ ] 10k op append + read benchmark completes in < 1s.
-- [ ] Crash test: kill service worker mid-write — on reopen,
+- [ ] Crash test: kill service worker mid-write - on reopen,
       `lastSeq()` reflects the last fully-committed op only.
 - [ ] Export/import round-trip preserves every op exactly.
 - [ ] No use of `localStorage`, `sessionStorage`, or

@@ -1,4 +1,4 @@
-# Choropleth — PolyChrome Example
+# Choropleth - PolyChrome Example
 
 A shared US-states choropleth built with D3 v7, TopoJSON, and
 `@polychrome/sdk`. The year slider and the list of pinned states are
@@ -6,8 +6,8 @@ shared across all peers.
 
 ## What it demonstrates
 
-- `polychrome.share('year', n)` — synchronized year slider
-- `polychrome.list('pinned')` — ordered list OT for pinning/unpinning states
+- `polychrome.share('year', n)` - synchronized year slider
+- `polychrome.list('pinned')` - ordered list OT for pinning/unpinning states
 - D3 v7 geo projections and path rendering
 - TopoJSON feature/mesh extraction (`topojson-client`)
 - Graceful degradation when the extension is not installed
@@ -41,16 +41,16 @@ Open http://localhost:5173 in your browser.
 
 ## Controls
 
-- **Year slider** — change the year (1990–2020), synced to peers
-- **Click a state** — pin it (appears in the sidebar); click again to unpin
-- **Sidebar unpin button** — remove a state from the pinned list
+- **Year slider** - change the year (1990–2020), synced to peers
+- **Click a state** - pin it (appears in the sidebar); click again to unpin
+- **Sidebar unpin button** - remove a state from the pinned list
 
 ## Testing cross-tab collaboration
 
 1. Load the PolyChrome extension in Chrome.
 2. Open two tabs pointing to the same PolyChrome session URL.
-3. Move the year slider in one tab — the other tab updates instantly.
-4. Pin a state in one tab — it appears in the sidebar of the other.
+3. Move the year slider in one tab - the other tab updates instantly.
+4. Pin a state in one tab - it appears in the sidebar of the other.
 
 ## Building
 

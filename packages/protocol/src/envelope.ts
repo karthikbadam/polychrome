@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — envelope.ts
+ * @polychrome/protocol - envelope.ts
  *
  * Helper functions that wrap protocol payloads into typed Envelope objects
  * for transmission over the WebRTC data channel.

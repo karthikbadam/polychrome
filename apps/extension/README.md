@@ -1,6 +1,6 @@
 # @polychrome/extension
 
-Chrome MV3 extension — service worker, content script, page bridge, and UI surfaces.
+Chrome MV3 extension - service worker, content script, page bridge, and UI surfaces.
 
 See implementation plan tracks:
 - [`H-background-sw.md`](../../docs/plan/tracks/H-background-sw.md)

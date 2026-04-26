@@ -1,5 +1,5 @@
 /**
- * declarative.test.ts — data-pc-* scanner tests
+ * declarative.test.ts - data-pc-* scanner tests
  */
 
 import type { BridgeEnvelope } from '@polychrome/protocol';

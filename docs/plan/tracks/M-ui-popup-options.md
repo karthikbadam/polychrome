@@ -1,4 +1,4 @@
-# Track M — Popup + Options UI
+# Track M - Popup + Options UI
 
 **Wave**: 5 (after H)
 **Depends on**: A, B, H
@@ -7,8 +7,8 @@
 ## Goal
 
 Two small UI surfaces:
-- **Popup** — toolbar-icon click; quick join/leave.
-- **Options** — full-page settings (signaling adapter, TURN servers,
+- **Popup** - toolbar-icon click; quick join/leave.
+- **Options** - full-page settings (signaling adapter, TURN servers,
   identity, snapshot cadence).
 
 Both built with React + Chakra UI v3.
@@ -30,14 +30,14 @@ Both built with React + Chakra UI v3.
 - `apps/extension/src/ui/options/sections/IdentitySection.tsx`
 - `apps/extension/src/ui/options/sections/SnapshotsSection.tsx`
 - `apps/extension/src/ui/options/sections/AllowlistSection.tsx`
-- `apps/extension/src/ui/options/sections/DataSection.tsx` — export/clear
+- `apps/extension/src/ui/options/sections/DataSection.tsx` - export/clear
 - `apps/extension/src/ui/options/state/store.ts`
 - `apps/extension/src/ui/options/__tests__/**`
 
 ### Shared
-- `apps/extension/src/ui/_shared/theme.ts` — Chakra theme used by all
+- `apps/extension/src/ui/_shared/theme.ts` - Chakra theme used by all
   three UI surfaces (Track K may co-author; coordinate via the theme
-  file as the single owner — define here, K imports)
+  file as the single owner - define here, K imports)
 
 ## Popup spec
 
@@ -84,7 +84,7 @@ Sections (Chakra `Tabs`):
 5. **Allowlist**
    - Show enabled site adapters with ✓.
    - Per-site toggle.
-   - "Add custom site" — text field for URL pattern (advanced).
+   - "Add custom site" - text field for URL pattern (advanced).
 6. **Data**
    - Total IndexedDB usage gauge.
    - "Export all sessions" button.
@@ -96,7 +96,7 @@ SW reads on startup and re-reads on `chrome.storage.onChanged`.
 ## SW messaging
 
 Both surfaces talk to SW via `chrome.runtime.sendMessage` (no
-long-lived port needed — these are short-lived UIs).
+long-lived port needed - these are short-lived UIs).
 
 ## Tests
 
@@ -121,7 +121,7 @@ long-lived port needed — these are short-lived UIs).
 - All three UI surfaces (sidepanel, popup, options) share theme +
   Chakra Provider setup. Define once in `_shared/theme.ts`; import
   from each entrypoint.
-- Don't bundle React per-surface — Vite will dedupe via the
+- Don't bundle React per-surface - Vite will dedupe via the
   workspace. Confirm with `pnpm build` output.
 - Popup must remain functional even when SW is asleep; first message
   wakes it (visible "connecting…" spinner is fine for ≤2s).

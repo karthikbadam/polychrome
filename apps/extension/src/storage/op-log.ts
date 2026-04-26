@@ -1,10 +1,10 @@
 /**
- * op-log.ts — op_log store operations.
+ * op-log.ts - op_log store operations.
  *
- * appendOp / appendOps — write ops in a single transaction.
- * getOps — stream via IDB cursor (constant memory).
- * lastSeq — cursor descending to find the highest seq for a session.
- * countOps — total count for a session.
+ * appendOp / appendOps - write ops in a single transaction.
+ * getOps - stream via IDB cursor (constant memory).
+ * lastSeq - cursor descending to find the highest seq for a session.
+ * countOps - total count for a session.
  */
 
 import { makeLogger } from '@polychrome/protocol';
@@ -43,7 +43,7 @@ export async function appendOps(
 }
 
 // ---------------------------------------------------------------------------
-// Read — streaming
+// Read - streaming
 // ---------------------------------------------------------------------------
 
 /**
@@ -67,7 +67,7 @@ export async function* getOps(
 }
 
 // ---------------------------------------------------------------------------
-// Read — scalar queries
+// Read - scalar queries
 // ---------------------------------------------------------------------------
 
 export async function getOp(

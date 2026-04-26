@@ -1,4 +1,4 @@
-# Track K — Side Panel UI
+# Track K - Side Panel UI
 
 **Wave**: 5 (after H)
 **Depends on**: A, B, H
@@ -10,15 +10,15 @@ The persistent side-panel UI users see while in a session. Built with
 React + **Chakra UI v3**.
 
 Three primary surfaces in the side panel:
-1. **Room** — create/join, room code, peer list with avatars.
-2. **Timeline** — replay scrubber, snapshot markers, checkpoints,
+1. **Room** - create/join, room code, peer list with avatars.
+2. **Timeline** - replay scrubber, snapshot markers, checkpoints,
    undo/redo.
-3. **Activity** — live event feed (filterable), branching controls.
+3. **Activity** - live event feed (filterable), branching controls.
 
 ## Files I own (exclusive)
 
 - `apps/extension/src/ui/sidepanel/index.html`
-- `apps/extension/src/ui/sidepanel/index.tsx` — React entry
+- `apps/extension/src/ui/sidepanel/index.tsx` - React entry
 - `apps/extension/src/ui/sidepanel/App.tsx`
 - `apps/extension/src/ui/sidepanel/views/Room.tsx`
 - `apps/extension/src/ui/sidepanel/views/Timeline.tsx`
@@ -28,9 +28,9 @@ Three primary surfaces in the side panel:
 - `apps/extension/src/ui/sidepanel/components/EventRow.tsx`
 - `apps/extension/src/ui/sidepanel/components/RoomCode.tsx`
 - `apps/extension/src/ui/sidepanel/components/UndoRedo.tsx`
-- `apps/extension/src/ui/sidepanel/state/store.ts` — Zustand store
-- `apps/extension/src/ui/sidepanel/state/sw.ts` — SW messaging hook
-- `apps/extension/src/ui/sidepanel/theme.ts` — Chakra v3 theme
+- `apps/extension/src/ui/sidepanel/state/store.ts` - Zustand store
+- `apps/extension/src/ui/sidepanel/state/sw.ts` - SW messaging hook
+- `apps/extension/src/ui/sidepanel/theme.ts` - Chakra v3 theme
 - `apps/extension/src/ui/sidepanel/__tests__/**`
 
 ## Dependencies to add
@@ -38,8 +38,8 @@ Three primary surfaces in the side panel:
 - `react`, `react-dom` (workspace-wide; root devDependency or per-app)
 - `@chakra-ui/react` v3.x
 - `@emotion/react`
-- `zustand` — light state management
-- `@tanstack/react-virtual` — for the activity feed virtualization
+- `zustand` - light state management
+- `@tanstack/react-virtual` - for the activity feed virtualization
 - `react-icons` (or `@chakra-ui/icons`) for tab icons
 
 ## UX
@@ -74,7 +74,7 @@ Three primary surfaces in the side panel:
 - Show peer list (color, name, idle indicator).
 - Leave session.
 - Export session to `.polychrome.zip`.
-- "Branch from current state" — sends `branch` message to SW.
+- "Branch from current state" - sends `branch` message to SW.
 
 ### Timeline view
 - Horizontal scrubber, full session range.

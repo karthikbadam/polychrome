@@ -1,5 +1,5 @@
 /**
- * signaling/adapter.ts — SignalingAdapter interface
+ * signaling/adapter.ts - SignalingAdapter interface
  *
  * All signaling backends must implement this contract. The adapter is
  * responsible only for rendezvous / SDP+ICE relay; it never touches

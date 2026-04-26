@@ -1,5 +1,5 @@
 /**
- * api.ts — pure factory that builds the polychrome surface on a Y.Doc.
+ * api.ts - pure factory that builds the polychrome surface on a Y.Doc.
  *
  * Decoupled from y-webrtc/y-websocket so it can be unit-tested with two
  * locally-connected docs (no actual transport needed).

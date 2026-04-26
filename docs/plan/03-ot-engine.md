@@ -1,4 +1,4 @@
-# 03 — OT Engine
+# 03 - OT Engine
 
 Owned by Track C (`packages/ot-core`). Pure functions, no DOM, no
 network, no IndexedDB. Easy to unit-test and property-test.
@@ -6,9 +6,9 @@ network, no IndexedDB. Easy to unit-test and property-test.
 ## Goals
 
 1. **Total order** of all logged ops, established by a sequencer-leader.
-2. **Convergence** — every peer applying the canonical op stream ends in
+2. **Convergence** - every peer applying the canonical op stream ends in
    the same logical state.
-3. **Inverses** — every persistent op kind has a computable inverse for
+3. **Inverses** - every persistent op kind has a computable inverse for
    `undo`.
 4. **No central server.** Leader is just a peer with a tag; election is
    deterministic and tolerates churn.
@@ -85,7 +85,7 @@ apply(transform(a,b), apply(a, s)) ≡ apply(transform(b,a), apply(b, s))
 ```
 Property tests in `packages/ot-core/src/transform.test.ts` enumerate
 random pairs and assert TP1 holds for our op set. We do **not** need TP2
-because the leader provides total order — concurrent ops are always
+because the leader provides total order - concurrent ops are always
 transformed in the leader's chosen order, never in two different orders
 on different peers.
 
@@ -119,14 +119,14 @@ on different peers.
   `undo`, with `payload.targetSeq`) that goes through OT like any other
   op.
 - Per-kind inverses:
-  - `dom_event` — visual replay only; inverse is "do nothing" but the
+  - `dom_event` - visual replay only; inverse is "do nothing" but the
     side-panel timeline marks it dimmed.
-  - `state_set { key, value }` — inverse is `state_set { key, prevValue }`
+  - `state_set { key, value }` - inverse is `state_set { key, prevValue }`
     where `prevValue` is read from the snapshot before `targetSeq`.
-  - `list_insert { listId, index }` — inverse is `list_delete`.
-  - `list_delete { listId, index }` — inverse is `list_insert`
+  - `list_insert { listId, index }` - inverse is `list_delete`.
+  - `list_delete { listId, index }` - inverse is `list_insert`
     (value retrieved from snapshot).
-  - `presence` / `viewport` / `checkpoint` — inverse is `state_set` to
+  - `presence` / `viewport` / `checkpoint` - inverse is `state_set` to
     prior value, except `checkpoint` cannot be undone (UI guard).
 - **Redo**: an `undo` of an `undo`.
 
@@ -165,7 +165,7 @@ when the confirmed op finally arrives.
 - [ ] `apply(invert(op), apply(op, s)) ≡ s` for every op kind across
       1000 random states.
 - [ ] Simulation test: 5 peers, 10k random ops, random leader churn
-      (10% per second) — all peers converge to identical final
+      (10% per second) - all peers converge to identical final
       `SharedStateView` within 5s of last op.
 - [ ] No imports from `chrome.*`, `window.*`, or `indexedDB`.
 - [ ] 100% statement coverage on `transform.ts` and `invert.ts`.

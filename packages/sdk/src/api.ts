@@ -1,5 +1,5 @@
 /**
- * api.ts — PolyChromeApi interface + createApi() factory
+ * api.ts - PolyChromeApi interface + createApi() factory
  *
  * This module provides the public polychrome object placed on window.polychrome
  * by the page bridge (Track J).  Adapters and page authors interact only with

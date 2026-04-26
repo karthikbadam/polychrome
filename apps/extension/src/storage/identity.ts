@@ -1,5 +1,5 @@
 /**
- * identity.ts — get/update the single 'self' identity row.
+ * identity.ts - get/update the single 'self' identity row.
  */
 
 import { makeLogger } from '@polychrome/protocol';

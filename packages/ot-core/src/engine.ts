@@ -1,5 +1,5 @@
 /**
- * engine.ts — OtEngine orchestrator.
+ * engine.ts - OtEngine orchestrator.
  *
  * Wires together:
  *   - State (in-memory SharedStateView)
@@ -10,10 +10,10 @@
  * The engine accepts callbacks and does NOT call IndexedDB or chrome.* directly.
  *
  * Constructor callbacks:
- *   persist(op)         — called once per confirmed op (to write to IndexedDB etc.)
- *   broadcast(env)      — called to send an envelope over the mesh
- *   onAuthoritative(op) — called once per authoritative (seq-assigned) op
- *   isLeader()          — returns true if this actor is currently the leader
+ *   persist(op)         - called once per confirmed op (to write to IndexedDB etc.)
+ *   broadcast(env)      - called to send an envelope over the mesh
+ *   onAuthoritative(op) - called once per authoritative (seq-assigned) op
+ *   isLeader()          - returns true if this actor is currently the leader
  */
 
 import type {
@@ -51,9 +51,9 @@ export interface OtEngineOptions {
   broadcast:        (env: Envelope) => void;
   /** Called for every confirmed (seq-assigned) op. */
   onAuthoritative:  (op: Operation) => void;
-  /** Injected RNG — do not use Math.random directly. */
+  /** Injected RNG - do not use Math.random directly. */
   rng?:             () => number;
-  /** Injected clock — do not use Date.now directly. */
+  /** Injected clock - do not use Date.now directly. */
   now?:             () => number;
 }
 
@@ -202,7 +202,7 @@ export class OtEngine {
       return Promise.resolve();
     }
 
-    // Already stamped — apply through OT.
+    // Already stamped - apply through OT.
     this._applyConfirmed(op);
     return Promise.resolve();
   }
@@ -313,7 +313,7 @@ export class OtEngine {
     this._state.apply(transformed);
     this._log.push(transformed);
 
-    // Persist fire-and-forget: failures do not affect convergence — the
+    // Persist fire-and-forget: failures do not affect convergence - the
     // authoritative op has already been applied to in-memory state.
     void this._opts.persist(transformed).catch(e => {
       log.warn('persist error', { seq: op.seq, kind: op.kind, err: e });

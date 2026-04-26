@@ -1,4 +1,4 @@
-# 07 — Extension Runtime & Message Routing
+# 07 - Extension Runtime & Message Routing
 
 How the four worlds (service worker, content script, MAIN-world page
 bridge, UI surfaces) communicate.

@@ -1,5 +1,5 @@
 /**
- * sim/cluster.ts — Deterministic discrete-event simulation harness.
+ * sim/cluster.ts - Deterministic discrete-event simulation harness.
  *
  * Simulates N peers exchanging ops over a virtual network with configurable
  * message delay and leader churn.  All randomness is injected via an RNG so

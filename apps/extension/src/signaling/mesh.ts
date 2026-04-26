@@ -1,5 +1,5 @@
 /**
- * signaling/mesh.ts — MeshManager
+ * signaling/mesh.ts - MeshManager
  *
  * Orchestrates a full-mesh WebRTC session:
  *   - Joins the signaling adapter.
@@ -77,7 +77,7 @@ export class MeshManager {
   private started    = false;
   private stopped    = false;
 
-  /** Cursor coalescer — shared across all peers. */
+  /** Cursor coalescer - shared across all peers. */
   private cursorThrottle: ReturnType<typeof createCursorThrottle<CursorMovePayload>>;
 
   /** Signaling adapter unsubscribe handles. */
@@ -104,7 +104,7 @@ export class MeshManager {
   // ---------------------------------------------------------------------------
 
   /**
-   * Join the session.  Idempotent — safe to call once.
+   * Join the session.  Idempotent - safe to call once.
    */
   async start(sessionId: SessionId, actorId: ActorId): Promise<void> {
     if (this.started) return;
@@ -204,7 +204,7 @@ export class MeshManager {
   private _onAdapterPeerJoin(remoteId: ActorId): void {
     if (this.stopped) return;
     if (this.connections.has(remoteId)) {
-      log.debug('Already have connection to', remoteId, '— skipping');
+      log.debug('Already have connection to', remoteId, '- skipping');
       return;
     }
 
@@ -213,7 +213,7 @@ export class MeshManager {
       return;
     }
 
-    log.info('New peer joined', remoteId, '— creating offer');
+    log.info('New peer joined', remoteId, '- creating offer');
     const pc = this._createPeerConnection(remoteId);
     this.connections.set(remoteId, pc);
 
@@ -239,7 +239,7 @@ export class MeshManager {
 
     // If we don't have a connection yet (we are the answerer), create one.
     if (!this.connections.has(from) && msg.type === 'offer') {
-      log.info('Received offer from new peer', from, '— creating answer');
+      log.info('Received offer from new peer', from, '- creating answer');
       const pc = this._createPeerConnection(from);
       this.connections.set(from, pc);
       // Non-initiator: start before handling the offer

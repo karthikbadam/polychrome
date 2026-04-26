@@ -1,4 +1,4 @@
-# 02 — Protocol (the canonical contract)
+# 02 - Protocol (the canonical contract)
 
 This file defines the wire format and types every other component depends
 on. **Do not change without coordinating across tracks.** All types live
@@ -49,7 +49,7 @@ interface Operation {
 a separate datachannel for low-latency presence and is dropped if not
 delivered. Everything else goes through the log.
 
-### `TargetRef` — addressing a DOM element across peers
+### `TargetRef` - addressing a DOM element across peers
 
 ```ts
 interface TargetRef {
@@ -66,7 +66,7 @@ done; (2) `xpath`; (3) `elementFromPoint(rect.x+rect.w/2, ...)` after
 scaling; (4) `text` prefix match within nearest container. If all fail,
 the op is dropped and logged to the devtools panel.
 
-### `OpPayload` — per-kind shape
+### `OpPayload` - per-kind shape
 
 ```ts
 type OpPayload =

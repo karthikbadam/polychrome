@@ -1,5 +1,5 @@
 /**
- * Drawing example — shared whiteboard using @polychrome/sdk
+ * Drawing example - shared whiteboard using @polychrome/sdk
  *
  * Works standalone (local-only) when window.polychrome is absent.
  * When connected, strokes are shared across peers via the 'strokes' list.

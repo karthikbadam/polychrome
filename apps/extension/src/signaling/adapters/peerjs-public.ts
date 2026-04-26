@@ -3,7 +3,7 @@
  *
  * Signaling adapter that uses the public PeerJS server (0.peerjs.com) as the
  * rendezvous point.  PeerJS DataConnections carry our AdapterSignalingMessage
- * envelopes — the actual WebRTC PeerConnections are managed separately by
+ * envelopes - the actual WebRTC PeerConnections are managed separately by
  * MeshManager / PeerConnection.
  *
  * The PeerJS peer ID is derived from a combination of sessionId and actorId so

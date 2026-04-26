@@ -1,4 +1,4 @@
-# Track E — Signaling & WebRTC Mesh
+# Track E - Signaling & WebRTC Mesh
 
 **Wave**: 3 (parallel with C, D, F, G)
 **Depends on**: A, B
@@ -12,13 +12,13 @@ Implement the WebRTC mesh and pluggable signaling layer specified in
 ## Files I own (exclusive)
 
 - `apps/extension/src/signaling/index.ts`
-- `apps/extension/src/signaling/adapter.ts` — `SignalingAdapter` interface
+- `apps/extension/src/signaling/adapter.ts` - `SignalingAdapter` interface
 - `apps/extension/src/signaling/adapters/peerjs-public.ts`
 - `apps/extension/src/signaling/adapters/p2pcf-worker.ts`
-- `apps/extension/src/signaling/adapters/conformance.ts` — shared test suite
-- `apps/extension/src/signaling/mesh.ts` — `MeshManager`
-- `apps/extension/src/signaling/peer-connection.ts` — single-peer wrapper
-- `apps/extension/src/signaling/throttle.ts` — cursor coalescer
+- `apps/extension/src/signaling/adapters/conformance.ts` - shared test suite
+- `apps/extension/src/signaling/mesh.ts` - `MeshManager`
+- `apps/extension/src/signaling/peer-connection.ts` - single-peer wrapper
+- `apps/extension/src/signaling/throttle.ts` - cursor coalescer
 - `apps/extension/src/signaling/__tests__/**`
 
 ## Dependencies to add
@@ -41,21 +41,21 @@ Implement everything in `docs/plan/05-signaling.md`. Key points:
 
 ## Implementation order
 
-1. `adapter.ts` — interface + `SignalingMessage` (re-export from
+1. `adapter.ts` - interface + `SignalingMessage` (re-export from
    protocol).
-2. `adapters/peerjs-public.ts` — wraps PeerJS DataConnections to
+2. `adapters/peerjs-public.ts` - wraps PeerJS DataConnections to
    carry our SignalingMessage envelope. Uses `new Peer(actorId, ...)`
    with the public PeerJS server.
-3. `adapters/p2pcf-worker.ts` — minimal HTTP/WebSocket client for a
+3. `adapters/p2pcf-worker.ts` - minimal HTTP/WebSocket client for a
    bring-your-own Cloudflare Worker (URL set in Options). Stub may
    throw "not configured" until the user provides URL.
-4. `peer-connection.ts` — wraps an `RTCPeerConnection` + two channels.
+4. `peer-connection.ts` - wraps an `RTCPeerConnection` + two channels.
    Handles offer/answer/ice exchange via the adapter; emits
    `onOpEnvelope` and `onCursor`.
-5. `mesh.ts` — joins the room via adapter, creates a
+5. `mesh.ts` - joins the room via adapter, creates a
    `PeerConnection` per remote actor, exposes `broadcast`,
    `sendCursor`, peer events.
-6. `throttle.ts` — small utility used by `mesh.ts` for cursor
+6. `throttle.ts` - small utility used by `mesh.ts` for cursor
    coalescing.
 
 ## Tests

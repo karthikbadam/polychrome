@@ -1,4 +1,4 @@
-# Track F — Page-side SDK (`@polychrome/sdk`)
+# Track F - Page-side SDK (`@polychrome/sdk`)
 
 **Wave**: 3 (parallel with C, D, E, G)
 **Depends on**: A, B
@@ -6,7 +6,7 @@
 
 ## Goal
 
-Implement `@polychrome/sdk` — the page-side library that
+Implement `@polychrome/sdk` - the page-side library that
 PolyChrome-aware visualizations import to register interactive elements
 and shared state. It is also what the MAIN-world page bridge (Track J)
 uses internally.
@@ -15,12 +15,12 @@ uses internally.
 
 - `packages/sdk/package.json` (replace stub)
 - `packages/sdk/src/index.ts`
-- `packages/sdk/src/api.ts` — the public `polychrome` object shape
-- `packages/sdk/src/store.ts` — `share`, `subscribe`, `unsubscribe`
-- `packages/sdk/src/lists.ts` — list-OT helpers
+- `packages/sdk/src/api.ts` - the public `polychrome` object shape
+- `packages/sdk/src/store.ts` - `share`, `subscribe`, `unsubscribe`
+- `packages/sdk/src/lists.ts` - list-OT helpers
 - `packages/sdk/src/checkpoint.ts`
-- `packages/sdk/src/declarative.ts` — data-attribute scanner
-- `packages/sdk/src/dispatch.ts` — bridge envelope dispatcher
+- `packages/sdk/src/declarative.ts` - data-attribute scanner
+- `packages/sdk/src/dispatch.ts` - bridge envelope dispatcher
 - `packages/sdk/src/__tests__/**`
 
 ## Public API

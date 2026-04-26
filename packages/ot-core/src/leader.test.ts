@@ -1,5 +1,5 @@
 /**
- * leader.test.ts — Discrete-event simulation of leader election.
+ * leader.test.ts - Discrete-event simulation of leader election.
  *
  * Tests:
  *   1. 5 peers start; initial leader is peer0.
@@ -51,7 +51,7 @@ function makeNetwork(n: number): Network {
     const cbs: LeaderCallbacks = {
       onStartHeartbeating() {
         // Immediately send heartbeat to all peers; read term from the machine
-        // directly — net.peers[i] becomes stale after a splice.
+        // directly - net.peers[i] becomes stale after a splice.
         schedule(id, 'broadcast', 'heartbeat', { senderId: id, seq: 0, term: machine.term }, 10);
       },
       onStopHeartbeating() { /* nothing */ },
@@ -156,7 +156,7 @@ function countLeaders(net: Network): number {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('LeaderStateMachine — 5-peer simulation', () => {
+describe('LeaderStateMachine - 5-peer simulation', () => {
   it('initial heartbeat makes all peers follow peer-0', () => {
     const net = makeNetwork(5);
     advance(net, 100);
@@ -192,7 +192,7 @@ describe('LeaderStateMachine — 5-peer simulation', () => {
     // Remove pending heartbeats from the crashed leader.
     net.queue = net.queue.filter(m => m.from !== `peer-${leaderIdx}` as ActorId);
 
-    // Advance 6 000 ms — a new leader should emerge.
+    // Advance 6 000 ms - a new leader should emerge.
     advance(net, net.now + 6000);
     const leaders = countLeaders(net);
     expect(leaders).toBe(1);
@@ -226,7 +226,7 @@ describe('LeaderStateMachine — 5-peer simulation', () => {
     }
   });
 
-  it('5 peers with random network delays — leader elected within 6 000 ms of disturbance', () => {
+  it('5 peers with random network delays - leader elected within 6 000 ms of disturbance', () => {
     const net = makeNetwork(5);
     // Stabilise.
     advance(net, 2000);

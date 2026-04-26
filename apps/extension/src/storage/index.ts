@@ -54,13 +54,13 @@ function db(): IDBPDatabase<PolychromeDBSchema> {
 }
 
 // ---------------------------------------------------------------------------
-// Storage — public API
+// Storage - public API
 // ---------------------------------------------------------------------------
 
 export const Storage = {
   /**
    * Open (or reuse) the DB connection and seed identity if not present.
-   * Idempotent — safe to call multiple times.
+   * Idempotent - safe to call multiple times.
    *
    * @param dbName  Override the database name (used in tests for isolation).
    */

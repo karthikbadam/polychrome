@@ -1,21 +1,21 @@
 /**
- * leader.ts — Sequencer-leader election state machine.
+ * leader.ts - Sequencer-leader election state machine.
  *
  * States: follower | candidate | leader
  *
  * Inputs (events fed via tick() and receive()):
- *   heartbeat_received  — a leader_heartbeat arrived
- *   heartbeat_timeout   — clock tick with no heartbeat for 3s
- *   claim_received      — a peer broadcasts leader_claim
- *   grant_received      — a peer grants this peer's claim
- *   term_change         — forced term update (e.g. new leader announced)
+ *   heartbeat_received  - a leader_heartbeat arrived
+ *   heartbeat_timeout   - clock tick with no heartbeat for 3s
+ *   claim_received      - a peer broadcasts leader_claim
+ *   grant_received      - a peer grants this peer's claim
+ *   term_change         - forced term update (e.g. new leader announced)
  *
  * Outputs (callbacks supplied in constructor):
- *   onStartHeartbeating — called when we become leader; emit heartbeats at 1s
- *   onStopHeartbeating  — called when we cease being leader
- *   onSendClaim         — broadcast leader_claim message
- *   onSendGrant         — reply with leader_grant to a claimant
- *   onLeaderChange      — notify engine that the leader changed
+ *   onStartHeartbeating - called when we become leader; emit heartbeats at 1s
+ *   onStopHeartbeating  - called when we cease being leader
+ *   onSendClaim         - broadcast leader_claim message
+ *   onSendGrant         - reply with leader_grant to a claimant
+ *   onLeaderChange      - notify engine that the leader changed
  *
  * Heartbeat interval: 1 000 ms.  Suspect after 3 consecutive misses (3 000 ms).
  */
@@ -209,7 +209,7 @@ export class LeaderStateMachine {
   /** Called when a leader_heartbeat arrives. */
   receiveHeartbeat(senderId: ActorId, seq: Seq, term: number): void {
     const now = this.getNow();
-    if (term < this._term) return; // stale term — ignore
+    if (term < this._term) return; // stale term - ignore
 
     if (term > this._term) {
       this._term = term;
@@ -234,14 +234,14 @@ export class LeaderStateMachine {
    * Grants only if:
    *   1. We are not the current leader (leaders are alive; no election needed).
    *   2. The claimant scores at least as well as us:
-   *      score = (lastSeq DESC, actorId ASC) — the spec's candidateScore.
+   *      score = (lastSeq DESC, actorId ASC) - the spec's candidateScore.
    *   3. We have not already voted in this term (one-vote-per-term rule).
    *
    * @param msg         - the claim message
    * @param myLastSeq   - this peer's last confirmed seq (for comparison)
    */
   receiveClaim(msg: ClaimMessage, myLastSeq: Seq): void {
-    // Active leaders do not grant claims — they are alive and healthy.
+    // Active leaders do not grant claims - they are alive and healthy.
     if (this._state === 'leader') return;
 
     // Evaluate candidateScore: higher lastSeq wins; ties broken by
@@ -298,7 +298,7 @@ export class LeaderStateMachine {
     this._grantsReceived   = new Set();
     this._claimStartTime   = now;
     this._currentLeaderId  = undefined;
-    // Vote for ourselves — prevents granting other candidates in this term.
+    // Vote for ourselves - prevents granting other candidates in this term.
     this._votedForTerm     = this._term;
     this.cb.onLeaderChange(undefined);
     this.cb.onSendClaim(lastObservedSeq);

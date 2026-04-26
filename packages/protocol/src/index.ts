@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — public API
+ * @polychrome/protocol - public API
  *
  * All consumers must import from '@polychrome/protocol' only.
  * No deep imports are allowed.

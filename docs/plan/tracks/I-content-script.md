@@ -1,4 +1,4 @@
-# Track I — Content Script
+# Track I - Content Script
 
 **Wave**: 4 (after G; can start once G's API is fixed)
 **Depends on**: A, B, G
@@ -13,14 +13,14 @@ MAIN-world page bridge (Track J).
 
 ## Files I own (exclusive)
 
-- `apps/extension/src/content/index.ts` — entrypoint
-- `apps/extension/src/content/capture.ts` — local DOM event capture
-- `apps/extension/src/content/dispatch.ts` — remote op execution
-- `apps/extension/src/content/overlay.ts` — SVG cursors + selection boxes
-- `apps/extension/src/content/recorder.ts` — rrweb capture (driven by SW)
-- `apps/extension/src/content/replay-sandbox.ts` — replay iframe
-- `apps/extension/src/content/bridge.ts` — postMessage to MAIN world
-- `apps/extension/src/content/sw-port.ts` — long-lived port to SW
+- `apps/extension/src/content/index.ts` - entrypoint
+- `apps/extension/src/content/capture.ts` - local DOM event capture
+- `apps/extension/src/content/dispatch.ts` - remote op execution
+- `apps/extension/src/content/overlay.ts` - SVG cursors + selection boxes
+- `apps/extension/src/content/recorder.ts` - rrweb capture (driven by SW)
+- `apps/extension/src/content/replay-sandbox.ts` - replay iframe
+- `apps/extension/src/content/bridge.ts` - postMessage to MAIN world
+- `apps/extension/src/content/sw-port.ts` - long-lived port to SW
 - `apps/extension/src/content/__tests__/**`
 
 ## Dependencies to add

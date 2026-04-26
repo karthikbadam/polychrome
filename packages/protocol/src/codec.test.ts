@@ -1,5 +1,5 @@
 /**
- * codec.test.ts — round-trip tests for encode/decode and every OpKind
+ * codec.test.ts - round-trip tests for encode/decode and every OpKind
  * Also includes the property test: 1000 random ops survive JSON.parse(JSON.stringify(op))
  */
 import * as fc from 'fast-check';
@@ -87,7 +87,7 @@ const OP_FIXTURES: Operation[] = [
 // Codec round-trip tests
 // ---------------------------------------------------------------------------
 
-describe('codec — encode/decode round-trip', () => {
+describe('codec - encode/decode round-trip', () => {
   it('round-trips wrapOp envelopes for every OpKind', () => {
     for (const op of OP_FIXTURES) {
       const env = wrapOp(op);
@@ -233,7 +233,7 @@ const operationArb: fc.Arbitrary<Operation> = fc
     payload: kindPayload.payload,
   }));
 
-describe('property test — ops survive JSON serialization', () => {
+describe('property test - ops survive JSON serialization', () => {
   it('1000 random ops deep-equal after JSON.parse(JSON.stringify(op))', () => {
     fc.assert(
       fc.property(operationArb, (op) => {

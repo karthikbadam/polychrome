@@ -1,5 +1,5 @@
 /**
- * @polychrome/protocol — coords.ts
+ * @polychrome/protocol - coords.ts
  *
  * Coordinate normalization helpers.
  *

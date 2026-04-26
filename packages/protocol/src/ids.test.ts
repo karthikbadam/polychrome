@@ -1,5 +1,5 @@
 /**
- * ids.test.ts — tests for newSessionId and newActorId
+ * ids.test.ts - tests for newSessionId and newActorId
  */
 import { describe, expect, it } from 'vitest';
 

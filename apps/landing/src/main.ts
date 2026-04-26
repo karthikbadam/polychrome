@@ -13,6 +13,6 @@ if (dl) {
       }
     })
     .catch(() => {
-      // offline / dev — leave the link alone
+      // offline / dev - leave the link alone
     });
 }

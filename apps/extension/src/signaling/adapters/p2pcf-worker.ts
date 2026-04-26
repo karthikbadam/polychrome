@@ -53,7 +53,7 @@ export class P2pcfWorkerAdapter implements SignalingAdapter {
 
   async join(sessionId: SessionId, actorId: ActorId): Promise<void> {
     if (!this.workerUrl) {
-      throw new Error('P2pcfWorkerAdapter: not-configured — set Worker URL in Options');
+      throw new Error('P2pcfWorkerAdapter: not-configured - set Worker URL in Options');
     }
 
     this.sessionId = sessionId;
@@ -162,7 +162,7 @@ export class P2pcfWorkerAdapter implements SignalingAdapter {
         break;
 
       default: {
-        // Exhaustiveness guard — log unknown kinds
+        // Exhaustiveness guard - log unknown kinds
         const unknown = msg as { kind: string };
         log.warn('P2PCF: unknown message kind', unknown.kind);
       }

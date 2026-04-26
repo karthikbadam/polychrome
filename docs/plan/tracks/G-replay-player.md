@@ -1,4 +1,4 @@
-# Track G — Replay Player
+# Track G - Replay Player
 
 **Wave**: 3 (parallel with C, D, E, F)
 **Depends on**: A, B
@@ -6,7 +6,7 @@
 
 ## Goal
 
-Implement `@polychrome/replay-player` — a framework-agnostic player
+Implement `@polychrome/replay-player` - a framework-agnostic player
 that, given a session's op log + snapshots (via a `StorageReader`
 interface), produces a deterministic stream of dispatch instructions.
 
@@ -19,9 +19,9 @@ This separation makes the player unit-testable in Node.
 - `packages/replay-player/package.json` (replace stub)
 - `packages/replay-player/src/index.ts`
 - `packages/replay-player/src/player.ts`
-- `packages/replay-player/src/storage-reader.ts` — interface only
-- `packages/replay-player/src/scheduler.ts` — speed / pause / step
-- `packages/replay-player/src/rrweb-adapter.ts` — wraps rrweb player calls
+- `packages/replay-player/src/storage-reader.ts` - interface only
+- `packages/replay-player/src/scheduler.ts` - speed / pause / step
+- `packages/replay-player/src/rrweb-adapter.ts` - wraps rrweb player calls
 - `packages/replay-player/src/__tests__/**`
 
 ## Dependencies to add
@@ -117,6 +117,6 @@ Per `docs/plan/06-replay.md`:
 ## Notes for the agent
 
 - Player is consumed by both the content script (in-page replay) AND
-  the side panel (when scrubbing without a tab open — show "preview"
+  the side panel (when scrubbing without a tab open - show "preview"
   in a panel iframe). Keep DOM-touching code in `RrwebSandbox` only.
 - Inject an RNG / clock if you need them, so tests are deterministic.

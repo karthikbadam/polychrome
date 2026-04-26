@@ -1,5 +1,5 @@
 /**
- * queue.ts — Pending-op queue.
+ * queue.ts - Pending-op queue.
  *
  * A pending op is one that has been submitted locally but not yet assigned
  * a global seq by the leader.  The queue maintains insertion order and
@@ -48,7 +48,7 @@ export class PendingQueue {
     return this._entries[0];
   }
 
-  /** Find entry by clientSeq (O(n) — queue is typically tiny). */
+  /** Find entry by clientSeq (O(n) - queue is typically tiny). */
   findByClientSeq(clientSeq: ClientSeq): PendingEntry | undefined {
     return this._entries.find(e => e.op.clientSeq === clientSeq);
   }

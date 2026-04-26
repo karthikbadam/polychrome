@@ -1,5 +1,5 @@
 /**
- * invert.test.ts — Property tests for the invert function.
+ * invert.test.ts - Property tests for the invert function.
  *
  * For every persistent op kind:
  *   apply(invert(op, s), apply(op, s)) ≡ s   (round-trip identity)
@@ -87,7 +87,7 @@ function roundTrip(opToApply: Operation, before: State): boolean {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('invert — round-trip identity', () => {
+describe('invert - round-trip identity', () => {
   it('state_set: apply then invert restores original', () => {
     fc.assert(
       fc.property(
@@ -243,7 +243,7 @@ describe('invert — round-trip identity', () => {
   });
 });
 
-describe('invert — concrete cases', () => {
+describe('invert - concrete cases', () => {
   it('state_set: captures prevValue from state', () => {
     const state = new State();
     state.apply(op('state_set', { key: 'x', value: 99 }));

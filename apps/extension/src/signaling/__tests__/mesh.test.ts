@@ -12,7 +12,7 @@
  *   4. sendCursor() goes through the 30Hz throttle
  *
  * Real WebRTC (two-profile Chrome test) is deferred to Track Z.
- * TODO(track-Z): E2E test — two Chrome profiles join same room, ops channel
+ * TODO(track-Z): E2E test - two Chrome profiles join same room, ops channel
  * active within 3s on localhost.
  */
 

@@ -41,7 +41,7 @@ export function runAdapterConformance(
   adapterName: string,
   makeLinkedPair: AdapterPairFactory,
 ): void {
-  describe(`${adapterName} — conformance`, () => {
+  describe(`${adapterName} - conformance`, () => {
     let local: SignalingAdapter;
     let remote: SignalingAdapter;
 
