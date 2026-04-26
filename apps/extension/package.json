@@ -11,10 +11,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@polychrome/protocol": "workspace:*",
     "@polychrome/ot-core": "workspace:*",
+    "@polychrome/protocol": "workspace:*",
     "@polychrome/replay-player": "workspace:*",
-    "@polychrome/sdk": "workspace:*"
+    "@polychrome/sdk": "workspace:*",
+    "peerjs": "^1.5.5"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.4.0",
