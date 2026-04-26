@@ -31,6 +31,9 @@ Thumbs.db
 # pnpm
 .pnpm-debug.log
 
+# Claude Code worktrees (subagent isolation)
+.claude/
+
 # Logs
 *.log
 npm-debug.log*
