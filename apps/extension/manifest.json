@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "PolyChrome 2.0",
+  "version": "0.1.0",
+  "description": "Peer-to-peer collaborative browsing with Operational Transformation.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "scripting",
+    "tabs",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://observablehq.com/*",
+    "https://*.observableusercontent.com/*",
+    "https://vega.github.io/editor/*",
+    "https://bl.ocks.org/*",
+    "https://public.tableau.com/*",
+    "https://polychrome.app/examples/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "src/ui/sidepanel/index.html"
+  },
+  "devtools_page": "src/ui/devtools/devtools.html",
+  "action": {
+    "default_popup": "src/ui/popup/index.html",
+    "default_title": "PolyChrome"
+  },
+  "options_ui": {
+    "page": "src/ui/options/index.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://observablehq.com/*",
+        "https://*.observableusercontent.com/*",
+        "https://vega.github.io/editor/*",
+        "https://bl.ocks.org/*",
+        "https://public.tableau.com/*",
+        "https://polychrome.app/examples/*"
+      ],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/main-world/index.ts"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {}
+}
