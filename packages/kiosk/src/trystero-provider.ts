@@ -25,7 +25,7 @@ import * as awarenessProtocol from 'y-protocols/awareness';
 import * as syncProtocol from 'y-protocols/sync';
 import * as encoding from 'lib0/encoding';
 import * as decoding from 'lib0/decoding';
-import { joinRoom, type Room } from '@trystero-p2p/torrent';
+import { joinRoom, getRelaySockets, type Room } from '@trystero-p2p/nostr';
 
 export interface TrysteroProviderOptions {
   /** Trystero appId namespace. Two clients only see each other if they
@@ -134,11 +134,14 @@ export class TrysteroProvider {
 
   private readonly room: Room;
   private readonly bridge: YjsBridge;
+  private readonly roomName: string;
   private destroyed = false;
 
   constructor(roomName: string, doc: Y.Doc, opts: TrysteroProviderOptions = {}) {
+    this.roomName = roomName;
     const room = joinRoom({ appId: opts.appId ?? APP_ID_DEFAULT }, roomName);
     this.room = room;
+    console.debug('[polychrome] trystero room joined:', roomName);
 
     const [sendSyncRaw, recvSync] = room.makeAction<Uint8Array>('y.sync');
     const [sendAwarenessRaw, recvAwareness] = room.makeAction<Uint8Array>('y.aware');
@@ -146,8 +149,6 @@ export class TrysteroProvider {
     const peers = this.peers;
     const channels: YjsChannels = {
       sendSync: (data, peerId) => {
-        // trystero's send wants `void`-returning typed but returns a
-        // Promise; we don't await it.
         void (sendSyncRaw as unknown as (d: Uint8Array, p?: string) => unknown)(data, peerId);
       },
       onSync: (cb) => {
@@ -162,6 +163,7 @@ export class TrysteroProvider {
       onPeerJoin: (cb) => {
         room.onPeerJoin((peerId) => {
           peers.set(peerId, true);
+          console.debug('[polychrome] peer joined:', peerId, 'total:', peers.size);
           cb(peerId);
         });
       },
@@ -172,9 +174,28 @@ export class TrysteroProvider {
 
     room.onPeerLeave((peerId) => {
       this.peers.delete(peerId);
-      // Anything that survives an abrupt disconnect is GC'd by
-      // awareness's outdated-state timeout (default 30s).
+      console.debug('[polychrome] peer left:', peerId, 'total:', peers.size);
     });
+  }
+
+  /**
+   * Diagnostic: { connected, total } for the underlying Trystero relay
+   * sockets. The kiosk banner shows this when the room has zero peers,
+   * to help distinguish "relay is down" from "I'm just alone".
+   */
+  relayState(): { connected: number; total: number } {
+    try {
+      const sockets = getRelaySockets() as unknown as Record<string, WebSocket | undefined>;
+      const entries = Object.entries(sockets ?? {});
+      const total = entries.length;
+      let connected = 0;
+      for (const [, ws] of entries) {
+        if (ws && ws.readyState === 1 /* OPEN */) connected++;
+      }
+      return { connected, total };
+    } catch {
+      return { connected: 0, total: 0 };
+    }
   }
 
   /** Match WebrtcProvider's API for swap-in compatibility. */

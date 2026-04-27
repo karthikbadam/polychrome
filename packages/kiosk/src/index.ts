@@ -309,6 +309,10 @@ function installBanner(
     if (Array.isArray(peersField)) return peersField.length;
     return 0;
   };
+  const relayState = (): { connected: number; total: number } => {
+    const fn = (provider as unknown as { relayState?: () => { connected: number; total: number } }).relayState;
+    return fn ? fn.call(provider) : { connected: 0, total: 0 };
+  };
   const updateStatus = (): void => {
     const n = liveCount();
     const sigOk = signalingConnected();
@@ -317,7 +321,12 @@ function installBanner(
       status.textContent = `${Math.max(n - 1, wrtcN)} peer${(n - 1 > 1 || wrtcN > 1) ? 's' : ''} connected`;
       peers.textContent = `· you are ${self.name}`;
     } else if (sigOk) {
-      status.textContent = 'waiting for a peer';
+      const r = relayState();
+      // Show relay state alongside "waiting for a peer" so a user can
+      // tell whether the relays are reachable from their network. If
+      // 0/N relays are connected, the page can't discover peers.
+      const relayLabel = r.total > 0 ? ` · relays ${r.connected}/${r.total}` : '';
+      status.textContent = `waiting for a peer${relayLabel}`;
       peers.textContent = '';
     } else {
       status.textContent = 'connecting to signaling…';

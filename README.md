@@ -112,22 +112,26 @@ The kiosk supports three modes (configurable via `?mode=` URL param):
 ### Connection notes
 
 Signaling goes through [Trystero](https://github.com/dmotz/trystero)'s
-torrent strategy — peers discover each other via public BitTorrent
-trackers (`wss://tracker.openwebtorrent.com` and friends), which are
-far more uptime-stable than the legacy y-webrtc signaling pool. The
-data path is still pure WebRTC.
+**nostr** strategy. Peers discover each other via public Nostr relays
+(`wss://relay.damus.io`, `wss://nos.lol`, etc.); the data path is
+still pure WebRTC.
 
-The bottom-left banner shows two states:
+The bottom-left banner shows:
 
-- **waiting for a peer** — the room is up; no other peer has joined
-  yet. Send the invite link.
-- **N peers connected** — WebRTC data channels are open with N peers.
+- **connecting to signaling…** — the provider is starting up.
+- **waiting for a peer · relays N/M** — the room is open and N of M
+  Nostr relays are connected. If N is 0 your network is blocking the
+  relay WebSockets; nothing the page can do until that changes.
+- **N peers connected** — WebRTC data channels are established.
 
 Same-browser tabs sync via the in-process `BroadcastChannel` and
-never touch the network. **Cross-browser / cross-device** sync uses
-the WebRTC path: trackers exchange SDP, peers connect directly with
-the help of public STUN servers. Symmetric / carrier-grade NAT setups
-still need TURN, which the kiosk does not bundle.
+never touch the network. Cross-browser / cross-device sync uses the
+WebRTC path. Symmetric / carrier-grade NAT setups still need TURN,
+which the kiosk does not bundle.
+
+Console logs `[polychrome] trystero room joined: …` and
+`[polychrome] peer joined/left: …` so DevTools shows the connection
+flow in real time.
 
 ## Loading the extension
 
