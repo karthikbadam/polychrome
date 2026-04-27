@@ -44,18 +44,18 @@ interface SignalingConn { connected: boolean }
 const APP_ID_DEFAULT = 'polychrome';
 
 /**
- * Curated mainstream Nostr relays that accept anonymous writes.
- * Trystero's stock list is heavy on obscure community relays and
- * paywalled endpoints (nostr.wine rejects unsigned-up writers, etc.);
- * the relays below are well-known free public ones used by clients
- * like Damus, Primal, and Nostr.band.
+ * Curated mainstream Nostr relays that accept anonymous writes and
+ * have lenient rate limits. Trystero's stock list is heavy on obscure
+ * community relays and paywalled endpoints; relay.damus.io rate-limits
+ * Trystero's announce traffic ('noting too much'); the relays below
+ * tolerate the announce volume Trystero produces with a small
+ * redundancy=N setup.
  */
 const DEFAULT_RELAY_URLS = [
-  'wss://relay.damus.io',
   'wss://nos.lol',
   'wss://relay.nostr.band',
-  'wss://relay.primal.net',
   'wss://nostr-pub.wellorder.net',
+  'wss://nostr.mutinywallet.com',
 ];
 
 // ---------------------------------------------------------------------------
