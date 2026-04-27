@@ -12,6 +12,8 @@
   ],
   "host_permissions": [
     "https://karthikbadam.github.io/*",
+    "https://idl.uw.edu/*",
+    "https://uwdata.github.io/*",
     "https://observablehq.com/*",
     "https://*.observableusercontent.com/*",
     "https://vega.github.io/editor/*",
@@ -40,6 +42,8 @@
     {
       "matches": [
         "https://karthikbadam.github.io/polychrome/*",
+        "https://idl.uw.edu/mosaic/*",
+        "https://uwdata.github.io/mosaic/*",
         "https://observablehq.com/*",
         "https://*.observableusercontent.com/*",
         "https://vega.github.io/editor/*",
@@ -55,6 +59,8 @@
     {
       "matches": [
         "https://karthikbadam.github.io/polychrome/*",
+        "https://idl.uw.edu/mosaic/*",
+        "https://uwdata.github.io/mosaic/*",
         "https://observablehq.com/*",
         "https://*.observableusercontent.com/*",
         "https://vega.github.io/editor/*",

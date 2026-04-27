@@ -17,6 +17,11 @@ import { WebrtcProvider } from 'y-webrtc';
 import { createPolyApi, type PolyApi } from '@polychrome/kiosk';
 
 import { installCursors, type CursorsHandle } from './cursors.js';
+import { mosaicAdapter } from './adapters/mosaic.js';
+import { AdapterRegistry } from './adapters/registry.js';
+
+const adapters = new AdapterRegistry();
+adapters.register(mosaicAdapter);
 
 declare global {
   interface Window {
@@ -36,7 +41,13 @@ const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
 ];
 
-let active: { provider: WebrtcProvider; doc: Y.Doc; room: string; cursors: CursorsHandle } | null = null;
+let active: {
+  provider: WebrtcProvider;
+  doc: Y.Doc;
+  room: string;
+  cursors: CursorsHandle;
+  adapterTeardown: () => void;
+} | null = null;
 
 function readDataset(): { identity: Identity | null; room: string | null } {
   const root = document.documentElement;
@@ -52,6 +63,7 @@ function readDataset(): { identity: Identity | null; room: string | null } {
 function teardown(): void {
   if (!active) return;
   try {
+    active.adapterTeardown();
     active.cursors.destroy();
     active.provider.awareness.setLocalState(null);
     active.provider.disconnect();
@@ -105,12 +117,19 @@ function applyConfig(): void {
   });
   provider.awareness.setLocalStateField('user', identity);
 
-  window.polychrome = createPolyApi(doc, identity);
+  const api = createPolyApi(doc, identity);
+  window.polychrome = api;
   const cursors = installCursors({
     awareness: provider.awareness,
     self: identity,
   });
-  active = { provider, doc, room, cursors };
+  const adapterTeardown = adapters.install(new URL(window.location.href), {
+    api,
+    self: identity,
+    log: () => { /* replaced in registry */ },
+    warn: () => { /* replaced in registry */ },
+  });
+  active = { provider, doc, room, cursors, adapterTeardown };
   ensureBadge(`PolyChrome - room ${room}`);
 }
 
