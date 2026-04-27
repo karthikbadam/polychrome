@@ -26,7 +26,15 @@
 
 html, body { margin: 0; height: 100%; }
 body { background: var(--bg); color: var(--fg); -webkit-font-smoothing: antialiased; }
-#app, #planets-app { height: 100vh; display: flex; flex-direction: column; }
+#app, #planets-app {
+  /* dvh accounts for mobile browser chrome (URL bar, gesture pill).
+     Reserve 56px at the bottom so the kiosk connection banner never
+     overlaps the bottom-left chart in the grid. */
+  height: 100dvh;
+  padding-bottom: 56px;
+  display: flex;
+  flex-direction: column;
+}
 
 header {
   display: flex; align-items: center; gap: 14px;

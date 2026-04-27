@@ -47,7 +47,10 @@ html, body {
 #canvas-container {
   position: relative;
   width: 100vw;
-  height: 100vh;
+  /* dvh keeps mobile browser chrome out of the way. Reserve 56px at the
+     bottom for the kiosk connection banner so it never overlaps the
+     drawing surface. */
+  height: calc(100dvh - 56px);
 }
 
 #drawing-canvas {

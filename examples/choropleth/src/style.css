@@ -47,7 +47,10 @@ html, body {
 #app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  /* dvh accounts for mobile browser chrome; reserve 56px at the bottom
+     so the kiosk connection banner never overlaps the map. */
+  height: 100dvh;
+  padding-bottom: 56px;
 }
 
 #controls {
