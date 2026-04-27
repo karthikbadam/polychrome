@@ -44,16 +44,18 @@ interface SignalingConn { connected: boolean }
 const APP_ID_DEFAULT = 'polychrome';
 
 /**
- * Curated mainstream Nostr relays. Trystero's stock list is heavy on
- * obscure community relays that often reject random clients; this list
- * is small, well-known, and reliable in practice.
+ * Curated mainstream Nostr relays that accept anonymous writes.
+ * Trystero's stock list is heavy on obscure community relays and
+ * paywalled endpoints (nostr.wine rejects unsigned-up writers, etc.);
+ * the relays below are well-known free public ones used by clients
+ * like Damus, Primal, and Nostr.band.
  */
 const DEFAULT_RELAY_URLS = [
   'wss://relay.damus.io',
   'wss://nos.lol',
-  'wss://relay.snort.social',
-  'wss://nostr.wine',
   'wss://relay.nostr.band',
+  'wss://relay.primal.net',
+  'wss://nostr-pub.wellorder.net',
 ];
 
 // ---------------------------------------------------------------------------
@@ -170,6 +172,11 @@ export class TrysteroProvider {
         relayRedundancy: relayUrls.length,
       },
       roomName,
+      {
+        onJoinError: (err) => {
+          console.warn('[polychrome] trystero join error:', err);
+        },
+      },
     );
     this.room = room;
     console.debug('[polychrome] trystero room joined:', roomName, 'relays:', relayUrls);
