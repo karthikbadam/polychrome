@@ -175,24 +175,6 @@ select:focus {
   margin-left: auto;
 }
 
-#status-badge {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  font-size: 12px;
-  color: var(--fg-soft);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  z-index: 100;
-}
-
-#status-badge.connected {
-  color: var(--g);
-  border-color: var(--g);
-}
-
 .legend {
   position: absolute;
   bottom: 48px;
@@ -223,7 +205,6 @@ select:focus {
   #controls { padding: 8px 12px; gap: 8px; font-size: 12px; }
   .control-group label { font-size: 12px; }
   select, .btn { font-size: 12px; padding: 4px 8px; }
-  #status-badge { bottom: 60px; font-size: 11px; padding: 4px 8px; }
   .legend { bottom: 90px; right: 8px; padding: 8px 10px; font-size: 11px; }
   .axis text { font-size: 10px; }
 }

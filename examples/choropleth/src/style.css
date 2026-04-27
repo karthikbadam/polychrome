@@ -182,24 +182,6 @@ html, body {
   margin-top: 8px;
 }
 
-#status-badge {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  font-size: 12px;
-  color: var(--fg-soft);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  z-index: 100;
-}
-
-#status-badge.connected {
-  color: var(--g);
-  border-color: var(--g);
-}
-
 .color-legend {
   position: absolute;
   bottom: 48px;
@@ -233,5 +215,4 @@ html, body {
   #year-display { font-size: 14px; }
   .pinned-panel { right: 8px; bottom: 70px; max-width: 200px; padding: 10px; font-size: 12px; }
   .color-legend { bottom: 70px; left: 8px; }
-  #status-badge { bottom: 60px; font-size: 11px; padding: 4px 8px; }
 }

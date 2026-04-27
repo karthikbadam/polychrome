@@ -122,42 +122,10 @@ html, body {
   background: rgba(255, 92, 124, 0.12);
 }
 
-#status-badge {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  font-size: 12px;
-  color: var(--fg-soft);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  z-index: 100;
-}
-
-#status-badge.connected {
-  color: var(--g);
-  border-color: var(--g);
-}
-
-#actor-info {
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  font-size: 12px;
-  color: var(--fg-soft);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 12px;
-  z-index: 100;
-}
-
 /* Mobile */
 @media (max-width: 720px) {
-  #controls { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
-  #controls label, #controls button { font-size: 12px; }
-  #controls input[type="range"] { width: 80px; }
-  #status-badge { bottom: 60px; font-size: 11px; padding: 4px 8px; }
+  #toolbar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .color-swatch { width: 24px; height: 24px; }
+  .btn-clear { font-size: 12px; padding: 4px 10px; }
   canvas { touch-action: none; }
 }

@@ -96,6 +96,37 @@ Tracks within a wave have **non-overlapping file ownership** - see each
 track file's "Files I own" section. Use `git worktree`-isolated Claude
 Code sessions for true parallelism.
 
+## Implementation status
+
+Built and merged on the active branch:
+
+| Track | Status | Notes |
+|---|---|---|
+| A scaffold | done | pnpm workspace, Vite + crxjs, Turborepo, ESLint/Prettier/Vitest |
+| B protocol | done | `@polychrome/protocol`; 34 tests |
+| C ot-core | done | transform/invert/leader/state; 45 tests (incl. TP1 property + 5-peer election sim) |
+| D storage | done | IndexedDB op log + snapshots + identity + `.polychrome.zip` |
+| E signaling+mesh | done | peerjs-public / p2pcf-worker / mdns adapters; 30Hz cursor throttle |
+| F sdk | done | page-side `window.polychrome`; share/list/checkpoint; ESM 10KB / IIFE 11KB; 28 tests |
+| G replay-player | not started | brief in `tracks/G-replay-player.md` |
+| H background SW | not started | brief in `tracks/H-background-sw.md` |
+| I content script | not started | brief in `tracks/I-content-script.md` |
+| J page bridge | not started | brief in `tracks/J-page-bridge.md` |
+| K side-panel UI | not started | brief in `tracks/K-ui-sidepanel.md` |
+| L devtools panel | not started | brief in `tracks/L-ui-devtools.md` |
+| M popup + options | not started | brief in `tracks/M-ui-popup-options.md` |
+| N site adapters | not started | brief in `tracks/N-adapters.md` |
+| O examples | done | drawing, scatterplot, choropleth (D3 v7) - all wired through the kiosk transport |
+| P publish (gh-pages) | done | landing page, `scripts/build-gh-pages.sh`, `.github/workflows/pages.yml` |
+| Z integration | not started | end-to-end smoke once H/I/J/K/L/M/N land |
+
+Out-of-plan addition: **`@polychrome/kiosk`** (`packages/kiosk/`) is a
+Yjs-over-y-webrtc runtime that installs `window.polychrome` directly on
+the hosted demo pages, so a visitor can try the demos without installing
+the extension. It is *not* the production PolyChrome runtime - the
+extension still owns the OT log, replay, and multi-site session model.
+The kiosk is a hosted-demo shortcut for `examples/`. 21 tests.
+
 ## Conventions every track follows
 
 - TypeScript strict mode. No `any` without a `// @reason` comment.

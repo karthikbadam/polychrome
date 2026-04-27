@@ -78,7 +78,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <p class="empty-hint" id="pin-hint">Click a state to pin it.</p>
     </div>
   </div>
-  <div id="status-badge">🔌 not connected to a session</div>
 `;
 
 // ---------------------------------------------------------------------------
@@ -285,9 +284,6 @@ function addLegend(): void {
 // ---------------------------------------------------------------------------
 
 function initSdk(pc: NonNullable<typeof window.polychrome>): void {
-  document.getElementById('status-badge')!.textContent = '✓ connected to session';
-  document.getElementById('status-badge')!.classList.add('connected');
-
   // Sync year
   const yearShared = pc.share<number>('year', MIN_YEAR);
   yearShared.subscribe((y) => {

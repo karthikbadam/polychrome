@@ -55,14 +55,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <div class="toolbar-sep"></div>
     <button class="btn-clear" id="btn-clear">Clear</button>
   </div>
-  <div id="status-badge">🔌 not connected to a session</div>
-  <div id="actor-info" style="display:none"></div>
 `;
 
 const canvas = document.getElementById('drawing-canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
-const statusBadge = document.getElementById('status-badge')!;
-const actorInfo = document.getElementById('actor-info')!;
 
 // ---------------------------------------------------------------------------
 // Resize handling
@@ -199,25 +195,17 @@ document.getElementById('btn-clear')!.addEventListener('click', () => {
 // ---------------------------------------------------------------------------
 
 function initSdk(pc: NonNullable<typeof window.polychrome>): void {
-  statusBadge.textContent = '✓ connected to session';
-  statusBadge.classList.add('connected');
-
-  actorInfo.style.display = 'block';
-  actorInfo.textContent = `You: ${pc.self.name}`;
-  actorInfo.style.borderColor = pc.self.color;
-
-  // Auto-select actor's color if it's in the palette
+  // Adopt the kiosk-assigned color if it's in the palette so this peer's
+  // strokes match the color shown in the kiosk banner.
   if (PALETTE.includes(pc.self.color)) {
     currentColor = pc.self.color;
     document.querySelector('.color-swatch.active')?.classList.remove('active');
-    const sw = document.querySelector<HTMLButtonElement>(`.color-swatch[data-color="${pc.self.color}"]`);
-    if (sw) sw.classList.add('active');
+    document
+      .querySelector<HTMLButtonElement>(`.color-swatch[data-color="${pc.self.color}"]`)
+      ?.classList.add('active');
   }
 
-  const strokes = pc.list<Stroke>('strokes');
-
-  // Subscribe to remote stroke updates
-  strokes.subscribe((newStrokes) => {
+  pc.list<Stroke>('strokes').subscribe((newStrokes) => {
     allStrokes = newStrokes;
     redrawAll();
   });
