@@ -32,7 +32,7 @@ echo "==> building landing page"
 cp -r apps/landing/dist/. "$OUT/"
 
 # 4. Build each example with its own base path
-for ex in drawing scatterplot choropleth; do
+for ex in drawing scatterplot choropleth planets; do
   if [[ -d "examples/$ex" ]]; then
     echo "==> building example: $ex (relative-path build)"
     # Wipe the per-example dist first so a stale cached build cannot leak
