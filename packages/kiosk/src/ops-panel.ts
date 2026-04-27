@@ -29,11 +29,6 @@ export function installOpsPanel(api: PolyApi, hostDoc: Document = document): Ops
   wrapper.id = PANEL_ID;
   wrapper.dataset['open'] = 'false';
   wrapper.innerHTML = `
-    <button class="pc-ops-toggle" type="button" aria-expanded="false">
-      <span class="pc-ops-toggle-icon">⟨/⟩</span>
-      <span class="pc-ops-toggle-label">ops</span>
-      <span class="pc-ops-count">0</span>
-    </button>
     <div class="pc-ops-body" role="region" aria-label="PolyChrome operations log">
       <header>
         <span class="pc-ops-title">Operations</span>
@@ -44,6 +39,11 @@ export function installOpsPanel(api: PolyApi, hostDoc: Document = document): Ops
         <span class="pc-ops-hint">click any row to inspect; latest at top</span>
       </footer>
     </div>
+    <button class="pc-ops-toggle" type="button" aria-expanded="false">
+      <span class="pc-ops-toggle-icon">⟨/⟩</span>
+      <span class="pc-ops-toggle-label">ops</span>
+      <span class="pc-ops-count">0</span>
+    </button>
   `;
   hostDoc.body.appendChild(wrapper);
 
@@ -153,8 +153,11 @@ function ensureStyles(doc: Document): void {
   const style = doc.createElement('style');
   style.id = STYLE_ID;
   style.textContent = `
+    /* Pinned next to the kiosk connection banner at the bottom; body
+       opens upward so the toggle button stays aligned with the banner. */
     #${PANEL_ID} {
-      position: fixed; right: 12px; top: 12px; z-index: 1001;
+      position: fixed; right: 12px; bottom: 12px; z-index: 1001;
+      display: flex; flex-direction: column; align-items: flex-end;
       font: 12px/1.4 -apple-system, system-ui, sans-serif;
       color: #e8eaed;
     }
@@ -183,7 +186,7 @@ function ensureStyles(doc: Document): void {
     }
 
     #${PANEL_ID} .pc-ops-body {
-      margin-top: 6px; flex-direction: column;
+      margin-bottom: 6px; flex-direction: column;
       width: min(420px, calc(100vw - 24px));
       max-height: min(60vh, 480px);
       background: rgba(22, 24, 28, 0.96); color: inherit;
