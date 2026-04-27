@@ -177,7 +177,12 @@ export function hookCoordinator(
  */
 function pollAndHook(ctx: InternalCtx): () => void {
   const intervalMs = ctx.poll?.intervalMs ?? 250;
-  const maxMs = ctx.poll?.maxMs ?? 30_000;
+  // Modern Mosaic (the @uwdata/mosaic-* packages used by vgplot) keeps
+  // the Coordinator inside its own module scope and does NOT expose it
+  // on a window global. There's no way for an external script to hook
+  // it in that case, so we cap polling at 5s and log quietly instead
+  // of nagging the console with a `warn` after 30s.
+  const maxMs = ctx.poll?.maxMs ?? 5_000;
   const globals = ctx.globals ?? (window as unknown as Record<string, unknown>);
   const t0 = Date.now();
   let teardown: (() => void) | null = null;
@@ -189,7 +194,10 @@ function pollAndHook(ctx: InternalCtx): () => void {
       return true;
     }
     if (Date.now() - t0 > maxMs) {
-      ctx.warn('gave up waiting for Mosaic coordinator');
+      // Expected on most modern Mosaic pages - the coordinator lives in
+      // a module closure rather than on `window`. Adapter degrades to a
+      // no-op (live cursors still work via the bridge).
+      ctx.log('Mosaic coordinator not found on window globals; adapter idle');
       return true;
     }
     return false;
