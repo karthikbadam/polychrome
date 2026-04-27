@@ -31,6 +31,7 @@ function render(state: RuntimeStateResponse): void {
           <div class="muted">You are</div>
           <div class="name">${escapeHtml(state.identity.name)}</div>
         </div>
+        <button class="link" id="open-panel" title="Open side panel">↗</button>
       </div>
       ${inRoom ? `
         <div class="room-row">
@@ -53,6 +54,14 @@ function render(state: RuntimeStateResponse): void {
       `}
     </div>
   `;
+
+  document.getElementById('open-panel')?.addEventListener('click', async () => {
+    const tab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
+    if (tab?.windowId !== undefined) {
+      try { await chrome.sidePanel.open({ windowId: tab.windowId }); window.close(); }
+      catch { /* user gesture lost; ignore */ }
+    }
+  });
 
   if (inRoom) {
     document.getElementById('copy')!.addEventListener('click', () => {

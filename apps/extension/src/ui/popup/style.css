@@ -11,6 +11,14 @@ body {
 }
 .card { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
 .who { display: flex; align-items: center; gap: 10px; }
+.who > div { flex: 1; }
+.link {
+  background: transparent; border: 1px solid #2a2e36; color: inherit;
+  cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  font: inherit; font-size: 14px;
+}
+@media (prefers-color-scheme: light) { .link { border-color: #e1e4e8; } }
+.link:hover { background: rgba(124,92,255,0.10); }
 .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
 .name { font-weight: 600; font-size: 14px; }
 .muted { color: #a1a8b3; font-size: 11px; }

@@ -118,7 +118,12 @@ chrome.runtime.onMessage.addListener((msg: RuntimeMessage, _sender, sendResponse
   return true;
 });
 
-// Bootstrap identity on install so the popup never sees a missing one.
+// Bootstrap identity on install so the popup never sees a missing one,
+// and enable the side panel to open from a generic action click as a
+// graceful fallback when the popup-driven open path fails.
 chrome.runtime.onInstalled.addListener(() => {
   void loadOrCreateIdentity();
+  void chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: false })
+    .catch(() => { /* sidePanel API unavailable */ });
 });

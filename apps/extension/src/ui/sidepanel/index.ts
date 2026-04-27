@@ -1,1 +1,261 @@
-export {};
+/**
+ * sidepanel/index.ts - PolyChrome side panel.
+ *
+ * Lives in chrome:// context, so it has full DOM + module imports. We
+ * reuse the SW's identity/room state via runtime port and additionally
+ * join the y-webrtc room ourselves to display live peer awareness and
+ * the checkpoints list.
+ *
+ * Counting peers: awareness reports one entry per (peer-process, tab).
+ * We dedupe by `user.actorId` so two tabs of the same user count as one
+ * person. The local awareness entry is annotated with `viewer:'panel'`
+ * so we can prefer the demo-tab entry for the same actor when picking
+ * a representative.
+ */
+
+import './style.css';
+import * as Y from 'yjs';
+import { WebrtcProvider } from 'y-webrtc';
+
+import type {
+  Identity,
+  RuntimeMessage,
+  RuntimePushMessage,
+  RuntimeStateResponse,
+} from '../../background/shared.js';
+
+const SIGNALING = ['wss://signaling.yjs.dev', 'wss://y-webrtc-eu.fly.dev'];
+const ICE_SERVERS = [
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'stun:stun.l.google.com:19302' },
+];
+
+interface Checkpoint { at: number; label: string; by: string }
+
+let activeRoom: string | null = null;
+let activeIdentity: Identity | null = null;
+let provider: WebrtcProvider | null = null;
+let doc: Y.Doc | null = null;
+
+function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(msg, (response: RuntimeStateResponse) => resolve(response));
+  });
+}
+
+// ---------------------------------------------------------------------------
+// y-webrtc connection: stand up when in a room, tear down when not.
+// ---------------------------------------------------------------------------
+
+function connectToRoom(room: string, identity: Identity): void {
+  if (provider && activeRoom === room && activeIdentity?.actorId === identity.actorId) return;
+  disconnect();
+
+  const d = new Y.Doc();
+  const p = new WebrtcProvider(`polychrome-extension-${room}`, d, {
+    signaling: SIGNALING,
+    peerOpts: { config: { iceServers: ICE_SERVERS } },
+  });
+  p.awareness.setLocalStateField('user', { ...identity, viewer: 'panel' });
+
+  p.awareness.on('change', renderPeers);
+  d.getArray<Checkpoint>('list:checkpoints').observe(renderCheckpoints);
+
+  provider = p;
+  doc = d;
+  activeRoom = room;
+  activeIdentity = identity;
+  renderPeers();
+  renderCheckpoints();
+}
+
+function disconnect(): void {
+  if (!provider) return;
+  try {
+    provider.awareness.setLocalState(null);
+    provider.disconnect();
+    provider.destroy();
+  } catch { /* ignore - destroy after page unload */ }
+  provider = null;
+  doc = null;
+  activeRoom = null;
+  activeIdentity = null;
+}
+
+window.addEventListener('beforeunload', disconnect);
+
+// ---------------------------------------------------------------------------
+// Render
+// ---------------------------------------------------------------------------
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c] ?? c));
+}
+
+function renderShell(state: RuntimeStateResponse): void {
+  const root = document.getElementById('root')!;
+  const inRoom = state.room !== null;
+  root.innerHTML = `
+    <header>
+      <h1>PolyChrome <span class="ver">2.0</span></h1>
+    </header>
+    <main>
+      <section id="me">
+        <h2>You</h2>
+        <div class="identity">
+          <span class="dot" style="background:${escapeHtml(state.identity.color)}"></span>
+          <div>
+            <div class="name">${escapeHtml(state.identity.name)}</div>
+            <div class="actor">${escapeHtml(state.identity.actorId.slice(0, 8))}</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="room-section">
+        <h2>Room</h2>
+        ${inRoom ? `
+          <div class="room-row">
+            <code class="room">${escapeHtml(state.room ?? '')}</code>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="copy">Copy invite</button>
+            <button class="btn danger" id="leave">Leave</button>
+          </div>
+        ` : `
+          <div class="no-room">Not in a room.</div>
+          <div class="actions stack">
+            <button class="btn primary" id="newroom">Start new room</button>
+            <div class="join-row">
+              <input id="joinid" placeholder="join code" maxlength="16" autocomplete="off" />
+              <button class="btn" id="join">Join</button>
+            </div>
+          </div>
+        `}
+      </section>
+
+      <section id="peers-section" style="${inRoom ? '' : 'display:none'}">
+        <h2 id="peers-heading">Peers</h2>
+        <ul class="peers" id="peers"><li class="empty">connecting&hellip;</li></ul>
+      </section>
+
+      <section id="checkpoints-section" style="${inRoom ? '' : 'display:none'}">
+        <h2>Checkpoints</h2>
+        <ul class="checkpoints" id="checkpoints"><li class="empty">no checkpoints yet</li></ul>
+      </section>
+    </main>
+  `;
+
+  if (inRoom) {
+    document.getElementById('copy')!.addEventListener('click', () => {
+      void navigator.clipboard.writeText(state.room ?? '');
+      const btn = document.getElementById('copy') as HTMLButtonElement | null;
+      if (btn) {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy invite'; }, 1200);
+      }
+    });
+    document.getElementById('leave')!.addEventListener('click', async () => {
+      await send({ type: 'setRoom', room: null });
+    });
+  } else {
+    document.getElementById('newroom')!.addEventListener('click', async () => {
+      await send({ type: 'generateRoom' });
+    });
+    const input = document.getElementById('joinid') as HTMLInputElement;
+    const join = async (): Promise<void> => {
+      const v = input.value.trim().toLowerCase();
+      if (!v) return;
+      await send({ type: 'setRoom', room: v });
+    };
+    document.getElementById('join')!.addEventListener('click', () => { void join(); });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') void join(); });
+  }
+}
+
+function renderPeers(): void {
+  const ul = document.getElementById('peers');
+  const heading = document.getElementById('peers-heading');
+  if (!ul || !provider) return;
+
+  const byActor = new Map<string, { identity: Identity; isSelf: boolean; isPanelOnly: boolean }>();
+  for (const [, state] of provider.awareness.getStates()) {
+    const u = state ? (state as { user?: Identity & { viewer?: string } }).user : undefined;
+    if (!u || !u.actorId) continue;
+    const isPanel = u.viewer === 'panel';
+    const isSelf = u.actorId === activeIdentity?.actorId;
+    const existing = byActor.get(u.actorId);
+    if (existing) {
+      // Prefer the non-panel entry as the representative when both exist.
+      if (existing.isPanelOnly && !isPanel) {
+        byActor.set(u.actorId, { identity: u, isSelf, isPanelOnly: false });
+      }
+    } else {
+      byActor.set(u.actorId, { identity: u, isSelf, isPanelOnly: isPanel });
+    }
+  }
+
+  const peers = [...byActor.values()].sort((a, b) => Number(b.isSelf) - Number(a.isSelf));
+  if (heading) heading.textContent = `Peers (${peers.length})`;
+
+  if (peers.length === 0) {
+    ul.innerHTML = '<li class="empty">no peers</li>';
+    return;
+  }
+  ul.innerHTML = peers.map(p => `
+    <li${p.isSelf ? ' class="self"' : ''}>
+      <span class="dot" style="background:${escapeHtml(p.identity.color)}"></span>
+      <span class="name">${escapeHtml(p.identity.name)}</span>
+      ${p.isSelf ? '<span class="you">you</span>' : ''}
+    </li>
+  `).join('');
+}
+
+function renderCheckpoints(): void {
+  const ul = document.getElementById('checkpoints');
+  if (!ul || !doc) return;
+
+  const items = doc.getArray<Checkpoint>('list:checkpoints').toArray();
+  if (items.length === 0) {
+    ul.innerHTML = '<li class="empty">no checkpoints yet</li>';
+    return;
+  }
+  const recent = items.slice(-12).reverse();
+  ul.innerHTML = recent.map(c => `
+    <li>
+      <div class="label">${escapeHtml(c.label)}</div>
+      <div class="meta">${escapeHtml(c.by)} &middot; ${formatTime(c.at)}</div>
+    </li>
+  `).join('');
+}
+
+function formatTime(ms: number): string {
+  const delta = Date.now() - ms;
+  const s = Math.round(delta / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return new Date(ms).toLocaleString();
+}
+
+// ---------------------------------------------------------------------------
+// SW state subscription
+// ---------------------------------------------------------------------------
+
+function applyState(state: RuntimeStateResponse): void {
+  renderShell(state);
+  if (state.room) connectToRoom(state.room, state.identity);
+  else disconnect();
+}
+
+function connect(): void {
+  const port = chrome.runtime.connect({ name: 'polychrome' });
+  port.onMessage.addListener((msg: RuntimePushMessage) => {
+    if (msg.type === 'state') applyState({ identity: msg.identity, room: msg.room });
+  });
+  port.onDisconnect.addListener(() => setTimeout(connect, 250));
+}
+connect();
