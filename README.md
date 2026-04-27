@@ -111,25 +111,23 @@ The kiosk supports three modes (configurable via `?mode=` URL param):
 
 ### Connection notes
 
-The bottom-left banner distinguishes three states:
+Signaling goes through [Trystero](https://github.com/dmotz/trystero)'s
+torrent strategy — peers discover each other via public BitTorrent
+trackers (`wss://tracker.openwebtorrent.com` and friends), which are
+far more uptime-stable than the legacy y-webrtc signaling pool. The
+data path is still pure WebRTC.
 
-- **connecting to signaling…** — the WebSocket to the y-webrtc
-  signaling server is still negotiating. If this persists, every
-  public signaling server in the rotation is unreachable from your
-  network; pass your own `signaling: ['wss://your-server']` to
-  `installKiosk` to override.
-- **waiting for a peer** — signaling is up; no other peer has joined
-  the room yet. Send the invite link.
+The bottom-left banner shows two states:
+
+- **waiting for a peer** — the room is up; no other peer has joined
+  yet. Send the invite link.
 - **N peers connected** — WebRTC data channels are open with N peers.
 
-Same-browser tabs use the in-process `BroadcastChannel` so they
-sync without ever needing the network. **Cross-browser /
-cross-device** sync goes through y-webrtc proper: peers exchange SDP
-via the public signaling server, then connect over WebRTC using the
-STUN servers listed in the kiosk. STUN handles most home and office
-networks; symmetric NAT and some carrier-grade-NAT setups require
-TURN, which the public kiosk does not ship — for production you'd
-self-host signaling and pass a TURN server through `peerOpts`.
+Same-browser tabs sync via the in-process `BroadcastChannel` and
+never touch the network. **Cross-browser / cross-device** sync uses
+the WebRTC path: trackers exchange SDP, peers connect directly with
+the help of public STUN servers. Symmetric / carrier-grade NAT setups
+still need TURN, which the kiosk does not bundle.
 
 ## Loading the extension
 

@@ -20,15 +20,16 @@
  */
 
 import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
 
 import type { PolyApi } from './api.js';
 import { createPolyApi } from './api.js';
 import { installOpsPanel } from './ops-panel.js';
+import { TrysteroProvider } from './trystero-provider.js';
 
 export type { PolyApi, OpLogRecord, SelfInfo } from './api.js';
 export { createPolyApi } from './api.js';
 export { installOpsPanel } from './ops-panel.js';
+export { TrysteroProvider } from './trystero-provider.js';
 
 declare global {
   interface Window {
@@ -47,41 +48,17 @@ export interface KioskOptions {
   scope: string;
   /** Default mode if URL has no `?mode=` override. Defaults to 'auto'. */
   mode?: KioskMode;
-  /**
-   * y-webrtc signaling servers. Defaults to community-run servers. Override
-   * for self-hosted deployments.
-   */
-  signaling?: string[];
   /** How long to wait for the extension to inject (mode='extension'). */
   extensionTimeoutMs?: number;
 }
 
 /**
- * Public signaling servers used by y-webrtc to discover peers in a room.
- * These are community-run and occasionally flaky; we list several so a
- * single outage doesn't kill cross-browser peering. Self-host with
- * `npx y-webrtc-signaling-server` and pass `signaling:` to override.
+ * Trystero appId namespace. Two clients only see each other if they
+ * share the same appId AND the same room name. We additionally key
+ * the room by demo scope so the drawing room and the choropleth room
+ * never collide on the same trackers.
  */
-const DEFAULT_SIGNALING = [
-  'wss://signaling.yjs.dev',
-  'wss://y-webrtc-eu.fly.dev',
-  'wss://y-webrtc-signaling-eu.herokuapp.com',
-  'wss://y-webrtc-signaling-us.herokuapp.com',
-];
-
-/**
- * STUN servers for WebRTC NAT traversal. STUN alone covers most home
- * networks (the peers exchange host + reflexive candidates). Symmetric
- * NAT and some carrier-grade NAT setups need TURN, which we intentionally
- * don't ship a default for - it's a paid resource. Pass an `iceServers`
- * override via `opts.iceServers` (future) or self-host.
- */
-const DEFAULT_ICE_SERVERS = [
-  { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun.services.mozilla.com:3478' },
-];
+const DEFAULT_APP_ID = 'polychrome';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -148,7 +125,7 @@ function waitForExtension(timeoutMs: number): void {
 }
 
 // ---------------------------------------------------------------------------
-// Kiosk transport (Yjs over y-websocket)
+// Kiosk transport (Yjs over Trystero / public BitTorrent trackers)
 // ---------------------------------------------------------------------------
 
 function installKioskTransport(opts: KioskOptions): void {
@@ -161,9 +138,8 @@ function installKioskTransport(opts: KioskOptions): void {
   }
 
   const ydoc = new Y.Doc();
-  const provider = new WebrtcProvider(`polychrome-${opts.scope}-${room}`, ydoc, {
-    signaling: opts.signaling ?? DEFAULT_SIGNALING,
-    peerOpts: { config: { iceServers: DEFAULT_ICE_SERVERS } },
+  const provider = new TrysteroProvider(`polychrome-${opts.scope}-${room}`, ydoc, {
+    appId: DEFAULT_APP_ID,
   });
 
   const self = {
@@ -174,8 +150,8 @@ function installKioskTransport(opts: KioskOptions): void {
   provider.awareness.setLocalStateField('user', self);
 
   // Make sure remote peers stop seeing this tab as soon as it goes away.
-  // y-webrtc's automatic disconnect can be slow over flaky signaling, so
-  // explicitly null out our awareness and tear the provider down.
+  // Trystero leaves the room cleanly, but we additionally null awareness
+  // so peers see us drop without waiting for the outdated-state timeout.
   const cleanup = (): void => {
     try {
       provider.awareness.setLocalState(null);
@@ -268,7 +244,7 @@ function showBadge(message: string, kind: 'ok' | 'warn' = 'ok'): void {
 
 function installBanner(
   room: string,
-  provider: WebrtcProvider,
+  provider: TrysteroProvider,
   self: { name: string; color: string },
 ): void {
   ensureBannerStyles();
@@ -313,11 +289,11 @@ function installBanner(
     return n;
   };
   /**
-   * y-webrtc surfaces two relevant flags:
-   *   - `provider.connected`: at least one signaling server is connected
-   *   - `provider.peers`: established WebRTC data-channel connections
-   * The banner distinguishes them so a user can tell whether they're
-   * stuck on signaling vs stuck on NAT traversal.
+   * Trystero abstracts signaling but we still expose two diagnostics:
+   *   - signalingConns[0].connected: room joined (Trystero "ready")
+   *   - peers.size: number of established WebRTC data channels
+   * The banner distinguishes them so a user can tell whether the room
+   * never came up vs whether they're alone in it.
    */
   const signalingConnected = (): boolean => {
     type Conn = { connected?: boolean };

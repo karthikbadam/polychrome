@@ -13,7 +13,6 @@
   "dependencies": {
     "@polychrome/kiosk": "workspace:*",
     "@polychrome/sdk": "workspace:*",
-    "y-webrtc": "^10.3.0",
     "yjs": "^13.6.30"
   },
   "devDependencies": {

@@ -15,9 +15,8 @@
 
 import './style.css';
 import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
 import { createTimeline, type TimelineHandle, type TimelineEvent } from '@polychrome/replay-player';
-import { createPolyApi, type OpLogRecord, type PolyApi } from '@polychrome/kiosk';
+import { createPolyApi, TrysteroProvider, type OpLogRecord, type PolyApi } from '@polychrome/kiosk';
 
 import type {
   Identity,
@@ -26,15 +25,9 @@ import type {
   RuntimeStateResponse,
 } from '../../background/shared.js';
 
-const SIGNALING = ['wss://signaling.yjs.dev', 'wss://y-webrtc-eu.fly.dev'];
-const ICE_SERVERS = [
-  { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'stun:stun.l.google.com:19302' },
-];
-
 let activeRoom: string | null = null;
 let activeIdentity: Identity | null = null;
-let provider: WebrtcProvider | null = null;
+let provider: TrysteroProvider | null = null;
 let doc: Y.Doc | null = null;
 let api: PolyApi | null = null;
 let unsubHistory: (() => void) | null = null;
@@ -47,7 +40,7 @@ function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
 }
 
 // ---------------------------------------------------------------------------
-// y-webrtc connection: stand up when in a room, tear down when not.
+// Connection: stand up when in a room, tear down when not.
 // ---------------------------------------------------------------------------
 
 function connectToRoom(room: string, identity: Identity): void {
@@ -55,9 +48,8 @@ function connectToRoom(room: string, identity: Identity): void {
   disconnect();
 
   const d = new Y.Doc();
-  const p = new WebrtcProvider(`polychrome-extension-${room}`, d, {
-    signaling: SIGNALING,
-    peerOpts: { config: { iceServers: ICE_SERVERS } },
+  const p = new TrysteroProvider(`polychrome-extension-${room}`, d, {
+    appId: 'polychrome',
   });
   p.awareness.setLocalStateField('user', { ...identity, viewer: 'panel' });
 

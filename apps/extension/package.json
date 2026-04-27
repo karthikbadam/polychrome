@@ -19,7 +19,6 @@
     "fflate": "^0.8.2",
     "idb": "^8.0.3",
     "peerjs": "^1.5.5",
-    "y-webrtc": "^10.3.0",
     "yjs": "^13.6.30"
   },
   "devDependencies": {

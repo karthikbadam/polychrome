@@ -14,7 +14,10 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "y-webrtc": "^10.3.0",
+    "@trystero-p2p/torrent": "^0.23.1",
+    "lib0": "^0.2.117",
+    "trystero": "^0.23.1",
+    "y-protocols": "^1.0.7",
     "yjs": "^13.6.18"
   },
   "devDependencies": {

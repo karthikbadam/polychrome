@@ -13,8 +13,7 @@
  */
 
 import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
-import { createPolyApi, type PolyApi } from '@polychrome/kiosk';
+import { createPolyApi, TrysteroProvider, type PolyApi } from '@polychrome/kiosk';
 
 import { installCursors, type CursorsHandle } from './cursors.js';
 import { mosaicAdapter } from './adapters/mosaic.js';
@@ -35,14 +34,8 @@ interface Identity {
   color: string;
 }
 
-const SIGNALING = ['wss://signaling.yjs.dev', 'wss://y-webrtc-eu.fly.dev'];
-const ICE_SERVERS = [
-  { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'stun:stun.l.google.com:19302' },
-];
-
 let active: {
-  provider: WebrtcProvider;
+  provider: TrysteroProvider;
   doc: Y.Doc;
   room: string;
   cursors: CursorsHandle;
@@ -111,9 +104,8 @@ function applyConfig(): void {
   teardown();
 
   const doc = new Y.Doc();
-  const provider = new WebrtcProvider(`polychrome-extension-${room}`, doc, {
-    signaling: SIGNALING,
-    peerOpts: { config: { iceServers: ICE_SERVERS } },
+  const provider = new TrysteroProvider(`polychrome-extension-${room}`, doc, {
+    appId: 'polychrome',
   });
   provider.awareness.setLocalStateField('user', identity);
 
