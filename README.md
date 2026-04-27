@@ -109,6 +109,28 @@ The kiosk supports three modes (configurable via `?mode=` URL param):
 - `kiosk` — always use the y-webrtc kiosk transport
 - `extension` — require the extension; show a "needs extension" badge if absent
 
+### Connection notes
+
+The bottom-left banner distinguishes three states:
+
+- **connecting to signaling…** — the WebSocket to the y-webrtc
+  signaling server is still negotiating. If this persists, every
+  public signaling server in the rotation is unreachable from your
+  network; pass your own `signaling: ['wss://your-server']` to
+  `installKiosk` to override.
+- **waiting for a peer** — signaling is up; no other peer has joined
+  the room yet. Send the invite link.
+- **N peers connected** — WebRTC data channels are open with N peers.
+
+Same-browser tabs use the in-process `BroadcastChannel` so they
+sync without ever needing the network. **Cross-browser /
+cross-device** sync goes through y-webrtc proper: peers exchange SDP
+via the public signaling server, then connect over WebRTC using the
+STUN servers listed in the kiosk. STUN handles most home and office
+networks; symmetric NAT and some carrier-grade-NAT setups require
+TURN, which the public kiosk does not ship — for production you'd
+self-host signaling and pass a TURN server through `peerOpts`.
+
 ## Loading the extension
 
 ```bash

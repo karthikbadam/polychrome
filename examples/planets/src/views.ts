@@ -10,7 +10,7 @@
 
 import * as d3 from 'd3';
 
-import { type Planet, type NumericDim, type CategoricalDim, DIM_LABELS, LOG_SCALE } from './data.js';
+import { type Planet, type Dim, type NumericDim, type CategoricalDim, DIM_LABELS, LOG_SCALE } from './data.js';
 import { type FilterMap, type FilterValue, filterPlanets } from './filters.js';
 
 export interface ViewContext {
@@ -18,8 +18,12 @@ export interface ViewContext {
   all: readonly Planet[];
   /** Current filter map, including this view's own filter. */
   filters: FilterMap;
-  /** Apply or clear this view's filter on the shared map. Null clears. */
-  onFilterChange: (next: FilterValue) => void;
+  /**
+   * Apply or clear a filter on a specific dimension. Passing null
+   * clears the filter for `dim` (recorded as a fresh op so peers see
+   * the clear immediately).
+   */
+  onFilterChange: (dim: Dim, next: FilterValue) => void;
 }
 
 export interface ViewHandle {
@@ -124,13 +128,13 @@ export function histogramView(dim: NumericDim): ViewHandle {
       .on('end', (event: d3.D3BrushEvent<unknown>) => {
         if (!event.sourceEvent) return; // programmatic brush; ignore
         if (!event.selection) {
-          onFilterChange(null);
+          onFilterChange(dim, null);
           return;
         }
         const [x0, x1] = event.selection as [number, number];
         const v0 = +xScale.invert(x0);
         const v1 = +xScale.invert(x1);
-        onFilterChange({ kind: 'range', dim, min: Math.min(v0, v1), max: Math.max(v0, v1) });
+        onFilterChange(dim, { kind: 'range', dim, min: Math.min(v0, v1), max: Math.max(v0, v1) });
       });
 
     const brushG = svg.append('g').attr('class', 'brush');
@@ -211,7 +215,7 @@ export function categoricalView(dim: CategoricalDim): ViewHandle {
         const next = new Set(selected);
         if (next.has(cat)) next.delete(cat);
         else next.add(cat);
-        onFilterChange(next.size === 0 ? null : { kind: 'set', dim, values: [...next] });
+        onFilterChange(dim, next.size === 0 ? null : { kind: 'set', dim, values: [...next] });
       });
       ul.appendChild(li);
     }

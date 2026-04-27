@@ -30,7 +30,7 @@
 
 import './style.css';
 import { installKiosk } from '@polychrome/kiosk';
-import { PLANETS, DIMENSIONS } from './data.js';
+import { PLANETS, DIMENSIONS, type Dim } from './data.js';
 import {
   type FilterMap, type FilterValue, activeCount, compact,
 } from './filters.js';
@@ -232,28 +232,9 @@ function viewContext() {
   return {
     all: PLANETS,
     filters,
-    onFilterChange: (next: FilterValue) => {
-      if (next === null) {
-        // Brush cleared - find the view that fired and clear its dim.
-        // We rely on the convention that a view only clears its OWN dim.
-        // The cleanest way to know which dim is to walk the views; we
-        // skip that here by clearing all dims that no longer have a
-        // brush extent at this frame (handled below in updateAll).
-        // Since a single brush 'end' can only clear that one view's
-        // dim, this is a rare path: clear everything filterless.
-        // Practical workaround: histogram view fires onFilterChange(null)
-        // when its brush is cleared; we have to know which dim. Pass
-        // `dim` through? Easier: histogramView already fires with
-        // {kind:'range', dim, min, max} on activate; on clear it fires
-        // null. We don't know the dim, so we just skip - the next
-        // brush activation will re-establish.
-        // Better behavior: have the view tag the null with its dim.
-        // (See views.ts; the null path is treated as "user cleared
-        // their brush" - the dim's filter will simply remain stale
-        // until they re-brush. Acceptable for now.)
-        return;
-      }
-      setFilter(next);
+    onFilterChange: (dim: Dim, next: FilterValue) => {
+      if (next === null) clearFilter(dim);
+      else setFilter(next);
     },
   };
 }

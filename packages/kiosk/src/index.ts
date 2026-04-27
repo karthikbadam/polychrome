@@ -56,9 +56,31 @@ export interface KioskOptions {
   extensionTimeoutMs?: number;
 }
 
+/**
+ * Public signaling servers used by y-webrtc to discover peers in a room.
+ * These are community-run and occasionally flaky; we list several so a
+ * single outage doesn't kill cross-browser peering. Self-host with
+ * `npx y-webrtc-signaling-server` and pass `signaling:` to override.
+ */
 const DEFAULT_SIGNALING = [
   'wss://signaling.yjs.dev',
   'wss://y-webrtc-eu.fly.dev',
+  'wss://y-webrtc-signaling-eu.herokuapp.com',
+  'wss://y-webrtc-signaling-us.herokuapp.com',
+];
+
+/**
+ * STUN servers for WebRTC NAT traversal. STUN alone covers most home
+ * networks (the peers exchange host + reflexive candidates). Symmetric
+ * NAT and some carrier-grade NAT setups need TURN, which we intentionally
+ * don't ship a default for - it's a paid resource. Pass an `iceServers`
+ * override via `opts.iceServers` (future) or self-host.
+ */
+const DEFAULT_ICE_SERVERS = [
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun.services.mozilla.com:3478' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -141,15 +163,7 @@ function installKioskTransport(opts: KioskOptions): void {
   const ydoc = new Y.Doc();
   const provider = new WebrtcProvider(`polychrome-${opts.scope}-${room}`, ydoc, {
     signaling: opts.signaling ?? DEFAULT_SIGNALING,
-    // Use Cloudflare's public STUN servers for NAT traversal.
-    peerOpts: {
-      config: {
-        iceServers: [
-          { urls: 'stun:stun.cloudflare.com:3478' },
-          { urls: 'stun:stun.l.google.com:19302' },
-        ],
-      },
-    },
+    peerOpts: { config: { iceServers: DEFAULT_ICE_SERVERS } },
   });
 
   const self = {
@@ -298,13 +312,39 @@ function installBanner(
     }
     return n;
   };
+  /**
+   * y-webrtc surfaces two relevant flags:
+   *   - `provider.connected`: at least one signaling server is connected
+   *   - `provider.peers`: established WebRTC data-channel connections
+   * The banner distinguishes them so a user can tell whether they're
+   * stuck on signaling vs stuck on NAT traversal.
+   */
+  const signalingConnected = (): boolean => {
+    type Conn = { connected?: boolean };
+    const conns = (provider as unknown as { signalingConns?: Iterable<Conn> }).signalingConns;
+    if (!conns) return Boolean((provider as unknown as { connected?: boolean }).connected);
+    for (const c of conns) if (c.connected) return true;
+    return false;
+  };
+  const webrtcPeerCount = (): number => {
+    const peersField = (provider as unknown as { peers?: Map<unknown, unknown> | unknown[] }).peers;
+    if (!peersField) return 0;
+    if (peersField instanceof Map) return peersField.size;
+    if (Array.isArray(peersField)) return peersField.length;
+    return 0;
+  };
   const updateStatus = (): void => {
     const n = liveCount();
-    if (n > 1) {
-      status.textContent = `${n - 1} peer${n > 2 ? 's' : ''} connected`;
+    const sigOk = signalingConnected();
+    const wrtcN = webrtcPeerCount();
+    if (n > 1 || wrtcN > 0) {
+      status.textContent = `${Math.max(n - 1, wrtcN)} peer${(n - 1 > 1 || wrtcN > 1) ? 's' : ''} connected`;
       peers.textContent = `· you are ${self.name}`;
-    } else {
+    } else if (sigOk) {
       status.textContent = 'waiting for a peer';
+      peers.textContent = '';
+    } else {
+      status.textContent = 'connecting to signaling…';
       peers.textContent = '';
     }
   };
