@@ -166,13 +166,16 @@ function ensureStyles(doc: Document): void {
     }
     @media (prefers-color-scheme: light) { #${PANEL_ID} { color: #1a1d23; } }
 
+    /* Padding/radius match the connection banner so both pills are
+       the same height when sitting next to each other in the bar. */
     #${PANEL_ID} .pc-ops-toggle {
       display: inline-flex; align-items: center; gap: 6px;
       font: inherit; cursor: pointer;
-      background: rgba(28, 31, 37, 0.92); color: inherit;
-      border: 1px solid #2a2e36; border-radius: 8px;
-      padding: 5px 10px; backdrop-filter: blur(6px);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      background: rgba(28, 31, 37, 0.95); color: inherit;
+      border: 1px solid #2a2e36; border-radius: 10px;
+      padding: 8px 12px; backdrop-filter: blur(6px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      height: 100%;
     }
     @media (prefers-color-scheme: light) {
       #${PANEL_ID} .pc-ops-toggle {
@@ -262,6 +265,16 @@ function ensureStyles(doc: Document): void {
     }
     @media (prefers-color-scheme: light) {
       #${PANEL_ID} .pc-ops-details { background: #f6f7f9; }
+    }
+
+    /* Match the banner's compact paddings so both pills shrink in
+       lockstep when the bottom bar is squeezed. */
+    @media (max-width: 600px) {
+      #${PANEL_ID} .pc-ops-toggle { padding: 6px 10px; gap: 4px; }
+    }
+    @media (max-width: 460px) {
+      /* Drop the 'ops' label; keep just the icon and count. */
+      #${PANEL_ID} .pc-ops-toggle-label { display: none; }
     }
   `;
   doc.head.appendChild(style);
