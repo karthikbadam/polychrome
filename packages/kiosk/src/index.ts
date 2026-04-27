@@ -24,9 +24,11 @@ import { WebrtcProvider } from 'y-webrtc';
 
 import type { PolyApi } from './api.js';
 import { createPolyApi } from './api.js';
+import { installOpsPanel } from './ops-panel.js';
 
 export type { PolyApi, OpLogRecord, SelfInfo } from './api.js';
 export { createPolyApi } from './api.js';
+export { installOpsPanel } from './ops-panel.js';
 
 declare global {
   interface Window {
@@ -176,6 +178,7 @@ function installKioskTransport(opts: KioskOptions): void {
   window.polychrome = api;
 
   installBanner(room, provider, self);
+  installOpsPanel(api);
 }
 
 // ---------------------------------------------------------------------------

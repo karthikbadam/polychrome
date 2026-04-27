@@ -24,20 +24,24 @@
       <h2>Collaborative web visualization,<br />in your browser.</h2>
       <p class="lede">
         PolyChrome 2.0 is a Chrome extension that turns curated visualization
-        pages into shared spaces. Move your cursor - your peers see it. Filter
-        a chart - they see that too. Scrub the timeline - replay every action
-        in canonical order, undo any of them, branch from any point in history.
+        pages into shared spaces. Move your cursor and your peers see it.
+        Brush a chart and the selection replicates. Every action drops into
+        a shared timeline, and the side panel can undo your most recent move.
       </p>
       <p class="lede">
-        Fully peer-to-peer over WebRTC. No backend, no accounts. A pure
-        Operational Transformation engine guarantees a single replayable
-        history across every device.
+        Fully peer-to-peer over WebRTC. No backend, no accounts.
+        A canonical, invertible op log per session - the
+        foundation for the full timeline scrub and branching planned
+        in v2.
       </p>
       <div class="cta">
         <a class="btn primary" href="#install">Install the extension</a>
         <a class="btn ghost" href="#demos">Try a demo</a>
       </div>
-      <p class="status">v0.1 - under active development. Some surfaces are still scaffolded.</p>
+      <p class="status">v0.1 - under active development. Live cursors,
+        brush/list sync, and per-room undo all work today; full
+        timeline-scrub replay and history branching are still on the
+        roadmap.</p>
     </section>
 
     <section id="demos">
@@ -50,20 +54,20 @@
       <div class="cards">
         <a class="card" href="./examples/drawing/">
           <h4>Drawing</h4>
-          <p>Shared whiteboard. Strokes flow through the OT log so undo and
-            replay work end-to-end.</p>
+          <p>Shared whiteboard. Strokes append to a CRDT list, so a
+            late-joining peer sees every existing stroke immediately.</p>
           <span class="card-cta">Open →</span>
         </a>
         <a class="card" href="./examples/scatterplot/">
           <h4>Scatterplot</h4>
-          <p>Iris dataset, D3 v7. Brush selection and axis choices replicate
-            across peers.</p>
+          <p>Iris dataset, D3 v7. Brush selection and X/Y axis choices
+            replicate across peers.</p>
           <span class="card-cta">Open →</span>
         </a>
         <a class="card" href="./examples/choropleth/">
           <h4>Choropleth</h4>
-          <p>US states, year slider, pinned-state list. Scrub the timeline
-            to replay any analysis session.</p>
+          <p>US states, year slider, pinned-state list. Slider position
+            and pinned set sync between peers.</p>
           <span class="card-cta">Open →</span>
         </a>
       </div>
