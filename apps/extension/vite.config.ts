@@ -7,7 +7,6 @@ export default defineConfig({
     crx({ manifest }),
   ],
   build: {
-    // Chrome MV3 minimum target
     target: 'chrome110',
     minify: false,
     sourcemap: true,

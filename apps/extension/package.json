@@ -11,13 +11,16 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@polychrome/kiosk": "workspace:*",
     "@polychrome/ot-core": "workspace:*",
     "@polychrome/protocol": "workspace:*",
     "@polychrome/replay-player": "workspace:*",
     "@polychrome/sdk": "workspace:*",
     "fflate": "^0.8.2",
     "idb": "^8.0.3",
-    "peerjs": "^1.5.5"
+    "peerjs": "^1.5.5",
+    "y-webrtc": "^10.3.0",
+    "yjs": "^13.6.30"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.4.0",

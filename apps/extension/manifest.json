@@ -11,12 +11,14 @@
     "sidePanel"
   ],
   "host_permissions": [
+    "https://karthikbadam.github.io/*",
     "https://observablehq.com/*",
     "https://*.observableusercontent.com/*",
     "https://vega.github.io/editor/*",
     "https://bl.ocks.org/*",
     "https://public.tableau.com/*",
-    "https://polychrome.app/examples/*"
+    "http://localhost/*",
+    "https://localhost/*"
   ],
   "background": {
     "service_worker": "src/background/index.ts",
@@ -37,22 +39,34 @@
   "content_scripts": [
     {
       "matches": [
+        "https://karthikbadam.github.io/polychrome/*",
         "https://observablehq.com/*",
         "https://*.observableusercontent.com/*",
         "https://vega.github.io/editor/*",
         "https://bl.ocks.org/*",
         "https://public.tableau.com/*",
-        "https://polychrome.app/examples/*"
+        "http://localhost/*",
+        "https://localhost/*"
       ],
       "js": ["src/content/index.ts"],
       "run_at": "document_start",
-      "all_frames": true
-    }
-  ],
-  "web_accessible_resources": [
+      "all_frames": false
+    },
     {
-      "resources": ["src/main-world/index.ts"],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "https://karthikbadam.github.io/polychrome/*",
+        "https://observablehq.com/*",
+        "https://*.observableusercontent.com/*",
+        "https://vega.github.io/editor/*",
+        "https://bl.ocks.org/*",
+        "https://public.tableau.com/*",
+        "http://localhost/*",
+        "https://localhost/*"
+      ],
+      "js": ["src/main-world/index.ts"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
     }
   ],
   "icons": {}
