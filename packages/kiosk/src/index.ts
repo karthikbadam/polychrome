@@ -25,6 +25,7 @@ import type { PolyApi } from './api.js';
 import { createPolyApi } from './api.js';
 import { installOpsPanel } from './ops-panel.js';
 import { TrysteroProvider } from './trystero-provider.js';
+import { ensureBottomBar } from './bottom-bar.js';
 
 export type { PolyApi, OpLogRecord, SelfInfo } from './api.js';
 export { createPolyApi } from './api.js';
@@ -178,15 +179,16 @@ function installKioskTransport(opts: KioskOptions): void {
 function ensureBannerStyles(): void {
   if (document.getElementById('pc-kiosk-styles')) return;
   const css = `
+    /* Banner is a child of #pc-kiosk-bottom-bar so it stacks
+       horizontally with the ops-panel toggle. */
     #pc-kiosk-banner {
-      position: fixed; left: 12px; bottom: 12px; z-index: 1000;
-      max-width: calc(100vw - 24px);
       font: 12px/1.4 -apple-system, system-ui, sans-serif;
       background: rgba(28, 31, 37, 0.95); color: #e8eaed;
       border: 1px solid #2a2e36; border-radius: 10px;
       padding: 8px 12px; backdrop-filter: blur(6px);
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 10px;
+      min-width: 0; max-width: 100%;
     }
     @media (prefers-color-scheme: light) {
       #pc-kiosk-banner {
@@ -219,9 +221,28 @@ function ensureBannerStyles(): void {
     }
     #pc-kiosk-badge.ok { border-color: #5cffb1; color: #5cffb1; }
     #pc-kiosk-badge.warn { border-color: #ffc857; color: #ffc857; }
-    @media (max-width: 480px) {
+    /* Status / peers text wrap and truncate so the banner never blows
+       past its row's available width, regardless of how chatty the
+       current state is. */
+    #pc-kiosk-banner > span {
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    @media (max-width: 600px) {
       #pc-kiosk-banner { font-size: 11px; padding: 6px 10px; gap: 6px; }
       #pc-kiosk-banner button { padding: 3px 8px; }
+      /* Drop the secondary 'you are X' tag at moderately narrow sizes. */
+      #pc-kiosk-banner .pc-peers { display: none; }
+    }
+    @media (max-width: 460px) {
+      /* Compact mode: dot + room code + icon-only Copy button. The
+         full status string would push past the viewport otherwise. */
+      #pc-kiosk-banner .pc-status { display: none; }
+      #pc-kiosk-banner button {
+        font-size: 0; padding: 4px 6px;
+      }
+      #pc-kiosk-banner button::before {
+        content: '⧉'; font-size: 13px;
+      }
     }
   `;
   const style = document.createElement('style');
@@ -256,6 +277,7 @@ function installBanner(
   dot.style.background = self.color;
 
   const status = document.createElement('span');
+  status.className = 'pc-status';
   status.textContent = 'connecting…';
 
   const roomCode = document.createElement('code');
@@ -273,7 +295,7 @@ function installBanner(
   peers.className = 'pc-peers';
 
   banner.append(dot, status, roomCode, copyBtn, peers);
-  document.body.appendChild(banner);
+  ensureBottomBar().appendChild(banner);
 
   const myClientId = provider.awareness.clientID;
   // Stale-peer guard: a tab that closed without firing pagehide can leave a

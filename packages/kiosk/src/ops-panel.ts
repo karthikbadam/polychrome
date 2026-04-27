@@ -11,6 +11,7 @@
  */
 
 import type { OpLogRecord, PolyApi } from './api.js';
+import { ensureBottomBar } from './bottom-bar.js';
 
 export interface OpsPanelHandle {
   destroy(): void;
@@ -45,7 +46,7 @@ export function installOpsPanel(api: PolyApi, hostDoc: Document = document): Ops
       <span class="pc-ops-count">0</span>
     </button>
   `;
-  hostDoc.body.appendChild(wrapper);
+  ensureBottomBar(hostDoc).appendChild(wrapper);
 
   const toggle = wrapper.querySelector('.pc-ops-toggle') as HTMLButtonElement;
   const body = wrapper.querySelector('.pc-ops-body') as HTMLElement;
@@ -153,13 +154,15 @@ function ensureStyles(doc: Document): void {
   const style = doc.createElement('style');
   style.id = STYLE_ID;
   style.textContent = `
-    /* Pinned next to the kiosk connection banner at the bottom; body
-       opens upward so the toggle button stays aligned with the banner. */
+    /* Sibling of the connection banner inside #pc-kiosk-bottom-bar.
+       Toggle stays at the bottom; body opens upward (positioned
+       absolutely so it doesn't push the bar's height around). */
     #${PANEL_ID} {
-      position: fixed; right: 12px; bottom: 12px; z-index: 1001;
-      display: flex; flex-direction: column; align-items: flex-end;
+      position: relative;
+      display: flex; flex-direction: column; align-items: flex-start;
       font: 12px/1.4 -apple-system, system-ui, sans-serif;
       color: #e8eaed;
+      flex-shrink: 0;
     }
     @media (prefers-color-scheme: light) { #${PANEL_ID} { color: #1a1d23; } }
 
@@ -186,7 +189,10 @@ function ensureStyles(doc: Document): void {
     }
 
     #${PANEL_ID} .pc-ops-body {
-      margin-bottom: 6px; flex-direction: column;
+      /* Anchored above the toggle and out of layout flow so opening
+         the panel doesn't shove the bottom bar upward. */
+      position: absolute; left: 0; bottom: calc(100% + 6px);
+      flex-direction: column;
       width: min(420px, calc(100vw - 24px));
       max-height: min(60vh, 480px);
       background: rgba(22, 24, 28, 0.96); color: inherit;
