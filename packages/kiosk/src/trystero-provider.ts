@@ -31,11 +31,30 @@ export interface TrysteroProviderOptions {
   /** Trystero appId namespace. Two clients only see each other if they
    * share the same appId AND the same room name. */
   appId?: string;
+  /**
+   * Override the Nostr relay list. Defaults to a curated set of
+   * mainstream relays (relay.damus.io, nos.lol, etc.) which are far
+   * more reliable than Trystero's stock relay list.
+   */
+  relayUrls?: string[];
 }
 
 interface SignalingConn { connected: boolean }
 
 const APP_ID_DEFAULT = 'polychrome';
+
+/**
+ * Curated mainstream Nostr relays. Trystero's stock list is heavy on
+ * obscure community relays that often reject random clients; this list
+ * is small, well-known, and reliable in practice.
+ */
+const DEFAULT_RELAY_URLS = [
+  'wss://relay.damus.io',
+  'wss://nos.lol',
+  'wss://relay.snort.social',
+  'wss://nostr.wine',
+  'wss://relay.nostr.band',
+];
 
 // ---------------------------------------------------------------------------
 // Pure wire-binding (testable without Trystero)
@@ -139,9 +158,21 @@ export class TrysteroProvider {
 
   constructor(roomName: string, doc: Y.Doc, opts: TrysteroProviderOptions = {}) {
     this.roomName = roomName;
-    const room = joinRoom({ appId: opts.appId ?? APP_ID_DEFAULT }, roomName);
+    const relayUrls = opts.relayUrls ?? DEFAULT_RELAY_URLS;
+    const room = joinRoom(
+      {
+        appId: opts.appId ?? APP_ID_DEFAULT,
+        relayUrls,
+        // Connect to ALL listed relays so two peers reliably share at
+        // least one common relay (defaults to a redundancy of 4-5
+        // randomly picked from the list, which can leave peers on
+        // disjoint relays and unable to discover each other).
+        relayRedundancy: relayUrls.length,
+      },
+      roomName,
+    );
     this.room = room;
-    console.debug('[polychrome] trystero room joined:', roomName);
+    console.debug('[polychrome] trystero room joined:', roomName, 'relays:', relayUrls);
 
     const [sendSyncRaw, recvSync] = room.makeAction<Uint8Array>('y.sync');
     const [sendAwarenessRaw, recvAwareness] = room.makeAction<Uint8Array>('y.aware');
