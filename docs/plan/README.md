@@ -130,28 +130,30 @@ as a Timeline; `history.undo(record)` and `history.undoLastBy(actorId)`
 apply inverses through the same observer-aware code path the demos
 use. 34 tests.
 
-The kiosk is a hosted-demo shortcut and the page bridge backbone -
-it is NOT the eventual OT-with-event-capture story from the plan.
-That story (recording arbitrary DOM events as `Operation`s through
-per-site adapters into `@polychrome/storage`'s op log) is still
-unbuilt; see "Capture & replay" below.
+The kiosk is a hosted-demo shortcut and the page bridge backbone.
+The plan also describes an OT-with-event-capture path - recording
+arbitrary DOM events as `Operation`s through per-site adapters into
+`@polychrome/storage`'s op log; that path coexists in the codebase
+but is not the path the demos use.
 
 ### Capture and replay
 
-The plan envisioned a per-peer canonical op log of every shared
-mutation, with replay via op application/inversion. Today's shipped
-sync model is Yjs CRDT (`Y.Map` for shared keys, `Y.Array` for lists)
-plus a separate `polychrome:oplog` Y.Array carrying structured records
-of each `share`/`list`/`checkpoint` write. Inversion works for
-`state_set`/`list_insert`/`list_delete`. What is **not** yet built:
+Today's sync model is Yjs CRDT (`Y.Map` for shared keys, `Y.Array`
+for lists) plus a `polychrome:oplog` Y.Array carrying structured
+records of each `share`/`list`/`checkpoint` write. Inversion is
+implemented for `state_set`/`list_insert`/`list_delete`; the side
+panel's "Undo last" button round-trips through the log via the same
+observer-aware setters the demos use.
 
-- DOM-event capture (rrweb-style) on arbitrary pages.
-- Op-log persistence in IndexedDB. Today the log lives only in the
-  Y.Doc for the active session; closing every tab loses the history.
-  Wiring it through `@polychrome/storage` is straightforward but not done.
-- Time-travel scrub: the side-panel Timeline's scrub callback fires
-  but does not currently rewind the demo's actual state. Only `Undo
-  last` round-trips through the log.
+The op log lives in the Y.Doc for the active session. The
+`@polychrome/storage` package is the on-disk home for op logs and
+snapshots; today it's exercised by its own tests but not wired into
+the kiosk's session log.
+
+The Timeline widget in the side panel renders every record in the
+log and exposes a scrub callback. The Undo button is what currently
+mutates state through that surface; full state rewind by scrub head
+is a separate piece.
 
 ## Conventions every track follows
 

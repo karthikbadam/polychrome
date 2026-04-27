@@ -140,8 +140,6 @@ surfaces, not marketing pages.
 
 - Confirm with the user that the GH Pages source is set to
   "GitHub Actions" in the repo settings before pushing the workflow.
-- The landing page should clearly state "v0.1 - under active
-  development" since most extension features aren't wired yet.
 - For the docs/ section, you can either: (a) skip it for v1; (b) use
   a minimal markdown-to-html script (e.g. `marked`); (c) point to
   GitHub's rendered markdown. Recommended: (c) to avoid scope

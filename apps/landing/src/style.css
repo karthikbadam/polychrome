@@ -126,12 +126,6 @@ section:first-of-type { border-top: none; }
 .btn.ghost { color: var(--fg); border: 1px solid var(--border); }
 .btn.ghost:hover { background: var(--bg-soft); color: var(--fg); }
 
-.status {
-  font-size: 13px;
-  color: var(--fg-soft);
-  margin-top: 24px;
-}
-
 h3 {
   font-size: 28px;
   margin: 0 0 12px;
