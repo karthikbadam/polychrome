@@ -25,7 +25,7 @@ import { WebrtcProvider } from 'y-webrtc';
 import type { PolyApi } from './api.js';
 import { createPolyApi } from './api.js';
 
-export type { PolyApi } from './api.js';
+export type { PolyApi, OpLogRecord, SelfInfo } from './api.js';
 export { createPolyApi } from './api.js';
 
 declare global {

@@ -288,3 +288,127 @@ describe('echo loop regression', () => {
     expect(count).toBe(3);
   });
 });
+
+// ---------------------------------------------------------------------------
+// History / op-log
+// ---------------------------------------------------------------------------
+
+describe('history', () => {
+  it('records a state_set op for each share().set()', () => {
+    p.apiA.share<number>('n').set(7);
+    p.apiA.share<string>('label').set('hi');
+    const all = p.apiA.history.all();
+    expect(all).toHaveLength(2);
+    expect(all[0]).toMatchObject({ kind: 'state_set', key: 'n', value: 7, hadPrev: false, by: 'A' });
+    expect(all[1]).toMatchObject({ kind: 'state_set', key: 'label', value: 'hi' });
+  });
+
+  it('captures prevValue on overwrites', () => {
+    const x = p.apiA.share<number>('n');
+    x.set(1);
+    x.set(2);
+    const all = p.apiA.history.all();
+    expect(all[1]).toMatchObject({ kind: 'state_set', key: 'n', value: 2, prevValue: 1, hadPrev: true });
+  });
+
+  it('records list_insert and list_delete with prevValue', () => {
+    const l = p.apiA.list<string>('s');
+    l.insert(0, 'a'); l.insert(1, 'b');
+    l.delete(0);
+    const all = p.apiA.history.all();
+    expect(all.map(r => r.kind)).toEqual(['list_insert', 'list_insert', 'list_delete']);
+    expect(all[2]).toMatchObject({ kind: 'list_delete', listId: 's', index: 0, prevValue: 'a' });
+  });
+
+  it('records checkpoint() calls', () => {
+    p.apiA.checkpoint('I see a cluster');
+    const all = p.apiA.history.all();
+    expect(all).toHaveLength(1);
+    expect(all[0]).toMatchObject({ kind: 'checkpoint', label: 'I see a cluster', by: 'A' });
+  });
+
+  it('the log is shared - peer B sees A\'s ops', () => {
+    p.apiA.share<number>('n').set(5);
+    p.apiA.list<string>('s').insert(0, 'x');
+    expect(p.apiB.history.all()).toEqual(p.apiA.history.all());
+    expect(p.apiB.history.all()).toHaveLength(2);
+  });
+
+  it('history.subscribe fires immediately + on every new op', () => {
+    const seen: number[] = [];
+    p.apiA.history.subscribe(rs => seen.push(rs.length));
+    p.apiA.share<number>('n').set(1);
+    p.apiA.share<number>('n').set(2);
+    expect(seen).toEqual([0, 1, 2]);
+  });
+
+  it('undo of a state_set restores the previous value', () => {
+    const x = p.apiA.share<number>('n');
+    x.set(1);
+    x.set(2);
+    const last = p.apiA.history.all().at(-1)!;
+    expect(p.apiA.history.undo(last)).toBe(true);
+    expect(x.get()).toBe(1);
+    expect(p.apiB.share<number>('n').get()).toBe(1);
+  });
+
+  it('undo of a state_set that had no prior value removes the key', () => {
+    p.apiA.share<number>('n').set(42);
+    const last = p.apiA.history.all().at(-1)!;
+    p.apiA.history.undo(last);
+    // After undo, the key is gone so a remote read returns undefined.
+    expect(p.apiB.share<number>('n').get()).toBeUndefined();
+  });
+
+  it('undo of a list_insert removes the inserted element when still present', () => {
+    const l = p.apiA.list<string>('s');
+    l.insert(0, 'a'); l.insert(1, 'b'); l.insert(2, 'c');
+    const lastInsert = p.apiA.history.all().at(-1)!;
+    expect(p.apiA.history.undo(lastInsert)).toBe(true);
+    expect(p.apiA.list<string>('s').get()).toEqual(['a', 'b']);
+    expect(p.apiB.list<string>('s').get()).toEqual(['a', 'b']);
+  });
+
+  it('undo of a list_delete re-inserts the previous value', () => {
+    const l = p.apiA.list<string>('s');
+    l.insert(0, 'a'); l.insert(1, 'b');
+    l.delete(0);
+    const lastDelete = p.apiA.history.all().at(-1)!;
+    expect(p.apiA.history.undo(lastDelete)).toBe(true);
+    expect(p.apiA.list<string>('s').get()).toEqual(['a', 'b']);
+  });
+
+  it('undo of a checkpoint is a no-op', () => {
+    p.apiA.checkpoint('hi');
+    const last = p.apiA.history.all().at(-1)!;
+    expect(p.apiA.history.undo(last)).toBe(false);
+  });
+
+  it('undoLastBy walks back skipping checkpoints', () => {
+    const x = p.apiA.share<number>('n');
+    x.set(1);
+    p.apiA.checkpoint('mid');
+    x.set(2);
+    p.apiA.checkpoint('end');
+
+    // The most recent non-checkpoint op for 'A' is the second set.
+    const undone = p.apiA.history.undoLastBy('A');
+    expect(undone?.kind).toBe('state_set');
+    expect(x.get()).toBe(1);
+  });
+
+  it('undo records a forward op so that undoing the undo is redo', () => {
+    const x = p.apiA.share<number>('n');
+    x.set(1); // op1
+    x.set(2); // op2
+    const op2 = p.apiA.history.all().at(-1)!;
+    p.apiA.history.undo(op2); // op3 = inverse of op2; restores 1
+    expect(x.get()).toBe(1);
+
+    const op3 = p.apiA.history.all().at(-1)!;
+    p.apiA.history.undo(op3); // op4 = inverse of op3; restores 2
+    expect(x.get()).toBe(2);
+    // Total ops: op1, op2, op3, op4.
+    expect(p.apiA.history.all()).toHaveLength(4);
+  });
+});

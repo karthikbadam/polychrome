@@ -17,6 +17,7 @@ import './style.css';
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 import { createTimeline, type TimelineHandle, type TimelineEvent } from '@polychrome/replay-player';
+import { createPolyApi, type OpLogRecord, type PolyApi } from '@polychrome/kiosk';
 
 import type {
   Identity,
@@ -31,12 +32,12 @@ const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
 ];
 
-interface Checkpoint { at: number; label: string; by: string }
-
 let activeRoom: string | null = null;
 let activeIdentity: Identity | null = null;
 let provider: WebrtcProvider | null = null;
 let doc: Y.Doc | null = null;
+let api: PolyApi | null = null;
+let unsubHistory: (() => void) | null = null;
 let timeline: TimelineHandle | null = null;
 
 function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
@@ -61,18 +62,21 @@ function connectToRoom(room: string, identity: Identity): void {
   p.awareness.setLocalStateField('user', { ...identity, viewer: 'panel' });
 
   p.awareness.on('change', renderPeers);
-  d.getArray<Checkpoint>('list:checkpoints').observe(renderCheckpoints);
+
+  const a = createPolyApi(d, identity);
+  unsubHistory = a.history.subscribe(renderHistory);
 
   provider = p;
   doc = d;
+  api = a;
   activeRoom = room;
   activeIdentity = identity;
   renderPeers();
-  renderCheckpoints();
 }
 
 function disconnect(): void {
   if (timeline) { timeline.destroy(); timeline = null; }
+  if (unsubHistory) { unsubHistory(); unsubHistory = null; }
   if (!provider) return;
   try {
     provider.awareness.setLocalState(null);
@@ -81,6 +85,7 @@ function disconnect(): void {
   } catch { /* ignore - destroy after page unload */ }
   provider = null;
   doc = null;
+  api = null;
   activeRoom = null;
   activeIdentity = null;
 }
@@ -144,7 +149,10 @@ function renderShell(state: RuntimeStateResponse): void {
       </section>
 
       <section id="checkpoints-section" style="${inRoom ? '' : 'display:none'}">
-        <h2>Checkpoints</h2>
+        <div class="section-head">
+          <h2>History</h2>
+          <button class="btn small" id="undo-last" disabled title="Undo your most recent change">Undo last</button>
+        </div>
         <div id="timeline-host"></div>
       </section>
     </main>
@@ -161,6 +169,9 @@ function renderShell(state: RuntimeStateResponse): void {
     });
     document.getElementById('leave')!.addEventListener('click', async () => {
       await send({ type: 'setRoom', room: null });
+    });
+    document.getElementById('undo-last')?.addEventListener('click', () => {
+      if (api && activeIdentity) api.history.undoLastBy(activeIdentity.actorId);
     });
   } else {
     document.getElementById('newroom')!.addEventListener('click', async () => {
@@ -215,19 +226,39 @@ function renderPeers(): void {
   `).join('');
 }
 
-function renderCheckpoints(): void {
-  const host = document.getElementById('timeline-host');
-  if (!host || !doc) return;
+function describeOp(r: OpLogRecord): string {
+  switch (r.kind) {
+    case 'state_set':   return `set ${r.key}`;
+    case 'list_insert': return `insert in ${r.listId}`;
+    case 'list_delete': return `delete from ${r.listId}`;
+    case 'checkpoint':  return r.label;
+    default: { const _x: never = r; void _x; return 'unknown'; }
+  }
+}
 
-  const items: TimelineEvent[] = doc
-    .getArray<Checkpoint>('list:checkpoints')
-    .toArray()
-    .map(c => ({ at: c.at, label: c.label, by: c.by }));
+function renderHistory(records: readonly OpLogRecord[]): void {
+  const host = document.getElementById('timeline-host');
+  if (!host) return;
+
+  const items: TimelineEvent[] = records.map(r => ({
+    at: r.at,
+    label: describeOp(r),
+    by: r.byName,
+    color: r.byColor,
+  }));
 
   if (timeline) {
     timeline.update({ events: items });
   } else {
     timeline = createTimeline(host as HTMLElement, { events: items });
+  }
+
+  // Enable / disable the "Undo last (yours)" button based on whether
+  // the local actor has any non-checkpoint ops in the log.
+  const btn = document.getElementById('undo-last') as HTMLButtonElement | null;
+  if (btn) {
+    const me = activeIdentity?.actorId;
+    btn.disabled = !records.some(r => r.by === me && r.kind !== 'checkpoint');
   }
 }
 

@@ -34,6 +34,15 @@ section h2 {
   letter-spacing: 0.06em; color: #a1a8b3; margin: 0 0 10px;
 }
 @media (prefers-color-scheme: light) { section h2 { color: #586069; } }
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-head h2 { margin: 0; }
+.btn.small {
+  flex: none; padding: 3px 8px; font-size: 11px; border-radius: 6px;
+}
+.btn.small:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .muted { color: #a1a8b3; font-size: 12px; }
 @media (prefers-color-scheme: light) { .muted { color: #586069; } }
