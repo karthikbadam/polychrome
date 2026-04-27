@@ -16,6 +16,8 @@ import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 import { createPolyApi, type PolyApi } from '@polychrome/kiosk';
 
+import { installCursors, type CursorsHandle } from './cursors.js';
+
 declare global {
   interface Window {
     polychrome?: PolyApi;
@@ -34,7 +36,7 @@ const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
 ];
 
-let active: { provider: WebrtcProvider; doc: Y.Doc; room: string } | null = null;
+let active: { provider: WebrtcProvider; doc: Y.Doc; room: string; cursors: CursorsHandle } | null = null;
 
 function readDataset(): { identity: Identity | null; room: string | null } {
   const root = document.documentElement;
@@ -50,6 +52,7 @@ function readDataset(): { identity: Identity | null; room: string | null } {
 function teardown(): void {
   if (!active) return;
   try {
+    active.cursors.destroy();
     active.provider.awareness.setLocalState(null);
     active.provider.disconnect();
     active.provider.destroy();
@@ -103,7 +106,11 @@ function applyConfig(): void {
   provider.awareness.setLocalStateField('user', identity);
 
   window.polychrome = createPolyApi(doc, identity);
-  active = { provider, doc, room };
+  const cursors = installCursors({
+    awareness: provider.awareness,
+    self: identity,
+  });
+  active = { provider, doc, room, cursors };
   ensureBadge(`PolyChrome - room ${room}`);
 }
 

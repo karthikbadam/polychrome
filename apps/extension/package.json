@@ -26,6 +26,7 @@
     "@crxjs/vite-plugin": "2.4.0",
     "@types/chrome": "^0.0.325",
     "fake-indexeddb": "^6.2.5",
+    "jsdom": "^29.1.0",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vitest": "^4.1.5"

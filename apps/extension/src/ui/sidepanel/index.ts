@@ -16,6 +16,7 @@
 import './style.css';
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
+import { createTimeline, type TimelineHandle, type TimelineEvent } from '@polychrome/replay-player';
 
 import type {
   Identity,
@@ -36,6 +37,7 @@ let activeRoom: string | null = null;
 let activeIdentity: Identity | null = null;
 let provider: WebrtcProvider | null = null;
 let doc: Y.Doc | null = null;
+let timeline: TimelineHandle | null = null;
 
 function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
   return new Promise((resolve) => {
@@ -70,6 +72,7 @@ function connectToRoom(room: string, identity: Identity): void {
 }
 
 function disconnect(): void {
+  if (timeline) { timeline.destroy(); timeline = null; }
   if (!provider) return;
   try {
     provider.awareness.setLocalState(null);
@@ -142,7 +145,7 @@ function renderShell(state: RuntimeStateResponse): void {
 
       <section id="checkpoints-section" style="${inRoom ? '' : 'display:none'}">
         <h2>Checkpoints</h2>
-        <ul class="checkpoints" id="checkpoints"><li class="empty">no checkpoints yet</li></ul>
+        <div id="timeline-host"></div>
       </section>
     </main>
   `;
@@ -213,32 +216,19 @@ function renderPeers(): void {
 }
 
 function renderCheckpoints(): void {
-  const ul = document.getElementById('checkpoints');
-  if (!ul || !doc) return;
+  const host = document.getElementById('timeline-host');
+  if (!host || !doc) return;
 
-  const items = doc.getArray<Checkpoint>('list:checkpoints').toArray();
-  if (items.length === 0) {
-    ul.innerHTML = '<li class="empty">no checkpoints yet</li>';
-    return;
+  const items: TimelineEvent[] = doc
+    .getArray<Checkpoint>('list:checkpoints')
+    .toArray()
+    .map(c => ({ at: c.at, label: c.label, by: c.by }));
+
+  if (timeline) {
+    timeline.update({ events: items });
+  } else {
+    timeline = createTimeline(host as HTMLElement, { events: items });
   }
-  const recent = items.slice(-12).reverse();
-  ul.innerHTML = recent.map(c => `
-    <li>
-      <div class="label">${escapeHtml(c.label)}</div>
-      <div class="meta">${escapeHtml(c.by)} &middot; ${formatTime(c.at)}</div>
-    </li>
-  `).join('');
-}
-
-function formatTime(ms: number): string {
-  const delta = Date.now() - ms;
-  const s = Math.round(delta / 1000);
-  if (s < 60) return `${s}s ago`;
-  const m = Math.round(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return new Date(ms).toLocaleString();
 }
 
 // ---------------------------------------------------------------------------
