@@ -17,6 +17,7 @@ import { createPolyApi, ensureBottomBar, installOpsPanel, TrysteroProvider, type
 
 import { installCursors, type CursorsHandle } from './cursors.js';
 import { installScrollSync, type ScrollHandle } from './scroll.js';
+import { installClickSync, type ClickHandle } from './click.js';
 import { d3BrushAdapter } from './adapters/d3-brush.js';
 import { AdapterRegistry } from './adapters/registry.js';
 
@@ -41,61 +42,17 @@ let active: {
   room: string;
   cursors: CursorsHandle;
   scroll: ScrollHandle;
+  click: ClickHandle;
   adapterTeardown: () => void;
   opsPanel: { destroy: () => void };
   badgeTimer: number;
 } | null = null;
 
-// ---------------------------------------------------------------------------
-// Per-tab identity
-// ---------------------------------------------------------------------------
-//
-// The service worker issues one identity per browser (one actorId, one
-// name, one color). Without further tweaking, two tabs of the same
-// browser would surface as a single peer in the banner, cursor labels,
-// and ops log. We layer a tab-scoped name + color on top of the
-// SW-issued identity so each tab looks like its own peer. The base
-// actorId is preserved so the op log still groups by author (one
-// browser = one author), and Yjs's clientID already distinguishes the
-// tabs for cursor rendering.
-
-const TAB_IDENTITY_KEY = 'polychrome.tabIdentity';
-const TAB_ANIMALS = [
-  'otter', 'lynx', 'fox', 'crane', 'shark', 'wolf', 'puma', 'orca',
-  'heron', 'gecko', 'badger', 'falcon', 'mantis', 'koala', 'tapir',
-];
-const TAB_COLORS = [
-  '#7c5cff', '#5cffb1', '#ff5c7c', '#ffc857', '#5ccfff',
-  '#ff9f5c', '#ff5cf0', '#a3e635',
-];
-
-function pick<T>(arr: readonly T[], fallback: T): T {
-  return arr[Math.floor(Math.random() * arr.length)] ?? fallback;
-}
-
-/**
- * Layer a per-tab `name` + `color` over the SW-issued identity.
- * Persisted in sessionStorage so a refresh keeps the same tab persona.
- */
-function perTabIdentity(base: Identity): Identity {
-  try {
-    const cached = sessionStorage.getItem(TAB_IDENTITY_KEY);
-    if (cached) {
-      const parsed = JSON.parse(cached) as Partial<Identity>;
-      if (parsed && parsed.name && parsed.color) {
-        return { ...base, name: parsed.name, color: parsed.color };
-      }
-    }
-  } catch { /* sessionStorage unavailable - fall through to a fresh roll */ }
-  const fresh: Identity = {
-    actorId: base.actorId,
-    name: pick(TAB_ANIMALS, 'otter'),
-    color: pick(TAB_COLORS, '#7c5cff'),
-  };
-  try { sessionStorage.setItem(TAB_IDENTITY_KEY, JSON.stringify(fresh)); }
-  catch { /* ignore - we'll re-roll next applyConfig, which is fine */ }
-  return fresh;
-}
+// The SW resolves a per-tab name + color (keyed by tabId in
+// chrome.storage.session) and pushes it down via the content-script
+// port; the popup and side panel ask for it by the same tabId. So the
+// identity we read from the dataset is already tab-scoped and can be
+// used as-is.
 
 function readDataset(): { identity: Identity | null; room: string | null } {
   const root = document.documentElement;
@@ -114,6 +71,7 @@ function teardown(): void {
     clearInterval(active.badgeTimer);
     active.opsPanel.destroy();
     active.adapterTeardown();
+    active.click.destroy();
     active.scroll.destroy();
     active.cursors.destroy();
     active.provider.awareness.setLocalState(null);
@@ -162,12 +120,12 @@ function removeBadge(): void {
 }
 
 function applyConfig(): void {
-  const { identity: baseIdentity, room } = readDataset();
+  const { identity, room } = readDataset();
 
   // No room or no identity: tear down whatever we had and leave
   // window.polychrome alone (either undefined or whatever the page
   // installed itself, e.g. the kiosk).
-  if (!baseIdentity || !room) {
+  if (!identity || !room) {
     teardown();
     removeBadge();
     return;
@@ -177,11 +135,6 @@ function applyConfig(): void {
   if (active && active.room === room) return;
 
   teardown();
-
-  // Each tab gets its own visible name + color (persisted in
-  // sessionStorage). Two tabs of the same browser then show up as two
-  // distinct peers in the banner, cursor labels, and ops log.
-  const identity = perTabIdentity(baseIdentity);
 
   const doc = new Y.Doc();
   const provider = new TrysteroProvider(`polychrome-extension-${room}`, doc, {
@@ -196,6 +149,7 @@ function applyConfig(): void {
     self: identity,
   });
   const scroll = installScrollSync({ api });
+  const click = installClickSync({ api });
   const adapterTeardown = adapters.install(new URL(window.location.href), {
     api,
     self: identity,
@@ -220,7 +174,7 @@ function applyConfig(): void {
   };
   const badgeTimer = window.setInterval(updateBadge, 1000);
 
-  active = { provider, doc, room, cursors, scroll, adapterTeardown, opsPanel, badgeTimer };
+  active = { provider, doc, room, cursors, scroll, click, adapterTeardown, opsPanel, badgeTimer };
   updateBadge();
 }
 

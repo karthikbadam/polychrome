@@ -12,6 +12,13 @@ export interface Identity {
 
 export const ROOM_STORAGE_KEY = 'polychrome.room';
 export const IDENTITY_STORAGE_KEY = 'polychrome.identity';
+/**
+ * Prefix for per-tab identity entries in chrome.storage.session. The
+ * SW seeds an entry the first time a content script connects from
+ * `tabId`, then clears it on chrome.tabs.onRemoved so a recycled tabId
+ * gets a fresh persona.
+ */
+export const TAB_IDENTITY_KEY_PREFIX = 'polychrome.tabIdentity:';
 
 // ---------------------------------------------------------------------------
 // Wire types
@@ -21,11 +28,18 @@ export const IDENTITY_STORAGE_KEY = 'polychrome.identity';
 export type RuntimePushMessage =
   | { type: 'state'; identity: Identity; room: string | null };
 
-/** One-shot requests from the popup to the SW. */
+/**
+ * One-shot requests from the popup to the SW.
+ *
+ * `tabId` identifies the tab whose per-tab identity (name + color) the
+ * SW should resolve / mutate. The popup fills it from
+ * chrome.tabs.query({active:true, currentWindow:true}). When absent
+ * the SW falls back to the browser-wide base identity.
+ */
 export type RuntimeMessage =
-  | { type: 'getState' }
-  | { type: 'setRoom'; room: string | null }
-  | { type: 'generateRoom' };
+  | { type: 'getState'; tabId?: number }
+  | { type: 'setRoom'; room: string | null; tabId?: number }
+  | { type: 'generateRoom'; tabId?: number };
 
 export interface RuntimeStateResponse {
   identity: Identity;

@@ -8,9 +8,19 @@
 import './style.css';
 import type { RuntimeMessage, RuntimeStateResponse } from '../../background/shared.js';
 
-function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
+async function activeTabId(): Promise<number | undefined> {
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tabs[0]?.id;
+}
+
+async function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
+  // The SW resolves per-tab identity by tabId. Without it the popup
+  // would render the browser-wide base identity while the page bridge
+  // shows its tab-scoped persona - and the two would visibly disagree.
+  const tabId = msg.tabId ?? await activeTabId();
+  const enriched = { ...msg, tabId } as RuntimeMessage;
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage(msg, (response: RuntimeStateResponse) => resolve(response));
+    chrome.runtime.sendMessage(enriched, (response: RuntimeStateResponse) => resolve(response));
   });
 }
 

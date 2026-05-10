@@ -33,9 +33,18 @@ let api: PolyApi | null = null;
 let unsubHistory: (() => void) | null = null;
 let timeline: TimelineHandle | null = null;
 
-function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
+async function activeTabId(): Promise<number | undefined> {
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tabs[0]?.id;
+}
+
+async function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
+  // The SW returns a per-tab name/color when handed a tabId; without
+  // it the side panel and the page bridge would show different personas.
+  const tabId = msg.tabId ?? await activeTabId();
+  const enriched = { ...msg, tabId } as RuntimeMessage;
   return new Promise((resolve) => {
-    chrome.runtime.sendMessage(msg, (response: RuntimeStateResponse) => resolve(response));
+    chrome.runtime.sendMessage(enriched, (response: RuntimeStateResponse) => resolve(response));
   });
 }
 
