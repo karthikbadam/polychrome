@@ -71,27 +71,28 @@ describe('makeThrottle', () => {
 interface FakeAwareness {
   states: Map<number, unknown>;
   listeners: Set<() => void>;
+  clientID: number;
   on(event: string, cb: () => void): void;
   off(event: string, cb: () => void): void;
   getStates(): Map<number, unknown>;
   setLocalStateField(field: string, value: unknown): void;
-  // pretend setLocalState applies to clientID 1
   emit(): void;
 }
 
-function fakeAwareness(): FakeAwareness {
+function fakeAwareness(clientID = 1): FakeAwareness {
   const states = new Map<number, unknown>();
   const listeners = new Set<() => void>();
-  states.set(1, {}); // self
+  states.set(clientID, {}); // self
   return {
     states,
     listeners,
+    clientID,
     on(event, cb) { if (event === 'change') listeners.add(cb); },
     off(event, cb) { if (event === 'change') listeners.delete(cb); },
     getStates() { return states; },
     setLocalStateField(field, value) {
-      const cur = (states.get(1) as Record<string, unknown> | undefined) ?? {};
-      states.set(1, { ...cur, [field]: value });
+      const cur = (states.get(clientID) as Record<string, unknown> | undefined) ?? {};
+      states.set(clientID, { ...cur, [field]: value });
       this.emit();
     },
     emit() { for (const cb of listeners) cb(); },
@@ -133,8 +134,8 @@ describe('installCursors', () => {
     h.destroy();
   });
 
-  it('does not render a cursor for self', () => {
-    const aw = fakeAwareness();
+  it('does not render a cursor for self (filtered by Yjs clientID)', () => {
+    const aw = fakeAwareness(1); // self is clientID 1
     aw.states.set(1, {
       user: { actorId: 'A', name: 'alice', color: '#7c5cff' },
       cursor: { x: 10, y: 20, t: Date.now() },
@@ -147,6 +148,28 @@ describe('installCursors', () => {
     });
 
     expect(host.querySelectorAll('.pc-cursor')).toHaveLength(0);
+    h.destroy();
+  });
+
+  it('renders two peers that share an actorId but have distinct clientIDs', () => {
+    // The extension issues one identity per browser, so two tabs of the
+    // same browser have the SAME actorId but different Yjs clientIDs.
+    // Both should appear as cursors on a third peer.
+    const aw = fakeAwareness(1);
+    aw.states.set(2, {
+      user: { actorId: 'A', name: 'alice', color: '#7c5cff' },
+      cursor: { x: 10, y: 20, t: Date.now() },
+    });
+    aw.states.set(3, {
+      user: { actorId: 'A', name: 'alice', color: '#7c5cff' },
+      cursor: { x: 100, y: 200, t: Date.now() },
+    });
+    const h = installCursors({
+      awareness: aw as unknown as Parameters<typeof installCursors>[0]['awareness'],
+      self: { actorId: 'B', name: 'bob', color: '#5cffb1' },
+      host,
+    });
+    expect(host.querySelectorAll('.pc-cursor')).toHaveLength(2);
     h.destroy();
   });
 

@@ -19,6 +19,8 @@ export interface Awareness {
   off(event: 'change', cb: () => void): void;
   getStates(): Map<number, unknown>;
   setLocalStateField(field: string, value: unknown): void;
+  /** This peer's Yjs client id - used to filter self in paint(). */
+  readonly clientID: number;
 }
 
 export interface CursorPoint { x: number; y: number; t: number }
@@ -163,25 +165,38 @@ export function installCursors(opts: CursorOptions): CursorsHandle {
   function paint(): void {
     const states = opts.awareness.getStates();
     const seen = new Set<string>();
-    const t = now();
+    let painted = 0;
+    let skippedSelf = 0;
+    let skippedNoCursor = 0;
+    const myClientID = opts.awareness.clientID;
 
-    for (const [, state] of states) {
+    for (const [clientID, state] of states) {
+      // Filter self by Yjs clientID (per-peer unique) rather than
+      // actorId. The extension issues one identity per browser - two
+      // tabs of the same browser share an actorId but each has its own
+      // clientID, so they ARE distinct peers and should see each
+      // other's cursors.
+      if (clientID === myClientID) { skippedSelf++; continue; }
       const s = state as { user?: CursorIdentity; cursor?: CursorPoint | null } | undefined;
       const u = s?.user;
       const c = s?.cursor;
-      if (!u || !c) continue;
-      if (u.actorId === opts.self.actorId) continue;
+      if (!u) { skippedNoCursor++; continue; }
+      if (!c) { skippedNoCursor++; continue; }
       // No staleness check: comparing the sender's Date.now() against
       // ours fights NTP drift / cross-device clock skew and would
       // silently filter out remote cursors. Awareness's own
       // outdated-state timeout (default 30s) handles real abandonment.
-      void t;
-      seen.add(u.actorId);
+      void now;
+      // Key dots by clientID so two tabs of the same actorId render
+      // independent dots.
+      const dotKey = String(clientID);
+      seen.add(dotKey);
 
-      const dot = ensureDot(u.actorId, u.color);
+      const dot = ensureDot(dotKey, u.color);
       dot.style.transform = `translate(${c.x - 2}px, ${c.y - 2}px)`;
       const label = dot.querySelector<HTMLSpanElement>('.pc-cursor-label');
       if (label) label.textContent = u.name;
+      painted++;
     }
 
     // Drop dots for peers we no longer see.
@@ -191,6 +206,12 @@ export function installCursors(opts: CursorOptions): CursorsHandle {
         dots.delete(actor);
       }
     }
+
+    console.debug(
+      '[polychrome:cursors] paint:', painted, 'painted,',
+      skippedSelf, 'self,', skippedNoCursor, 'no-cursor,',
+      states.size, 'total awareness states',
+    );
   }
 
   const onAwarenessChange = (): void => paint();
