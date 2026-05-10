@@ -16,11 +16,11 @@ import * as Y from 'yjs';
 import { createPolyApi, TrysteroProvider, type PolyApi } from '@polychrome/kiosk';
 
 import { installCursors, type CursorsHandle } from './cursors.js';
-import { mosaicAdapter } from './adapters/mosaic.js';
+import { d3BrushAdapter } from './adapters/d3-brush.js';
 import { AdapterRegistry } from './adapters/registry.js';
 
 const adapters = new AdapterRegistry();
-adapters.register(mosaicAdapter);
+adapters.register(d3BrushAdapter);
 
 declare global {
   interface Window {
