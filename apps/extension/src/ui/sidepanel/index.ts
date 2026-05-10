@@ -42,7 +42,7 @@ async function send(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
   // The SW returns a per-tab name/color when handed a tabId; without
   // it the side panel and the page bridge would show different personas.
   const tabId = msg.tabId ?? await activeTabId();
-  const enriched = { ...msg, tabId } as RuntimeMessage;
+  const enriched: RuntimeMessage = tabId === undefined ? msg : { ...msg, tabId };
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(enriched, (response: RuntimeStateResponse) => resolve(response));
   });

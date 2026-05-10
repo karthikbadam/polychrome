@@ -17,10 +17,14 @@
 import { newActorId } from '@polychrome/protocol';
 
 import {
+  type BridgeTabState,
   type Identity,
   type RuntimeMessage,
+  type RuntimePortMessage,
   type RuntimePushMessage,
   type RuntimeStateResponse,
+  type RuntimeTabsResponse,
+  type TabSummary,
   ROOM_STORAGE_KEY,
   IDENTITY_STORAGE_KEY,
   TAB_IDENTITY_KEY_PREFIX,
@@ -100,6 +104,18 @@ async function setRoom(room: string | null): Promise<void> {
 const ports = new Set<chrome.runtime.Port>();
 
 /**
+ * Live per-tab state pushed by each tab's content script. The popup
+ * reads this to render a cross-tab dashboard. Cleared when the port
+ * disconnects (tab close, navigation) and on tabs.onRemoved.
+ */
+interface TabRecord {
+  tabId: number;
+  state: BridgeTabState;
+  lastSeen: number;
+}
+const tabStates = new Map<number, TabRecord>();
+
+/**
  * Push the current state to every connected port. Each port belongs
  * to a tab, so we resolve a per-tab identity per port rather than
  * sharing one message - which is why this isn't a simple
@@ -118,8 +134,16 @@ async function broadcastState(): Promise<void> {
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== 'polychrome') return;
   ports.add(port);
-  port.onDisconnect.addListener(() => ports.delete(port));
   const tabId = port.sender?.tab?.id;
+  port.onMessage.addListener((msg: RuntimePortMessage) => {
+    if (!msg || msg.type !== 'tabState') return;
+    if (tabId === undefined) return;
+    tabStates.set(tabId, { tabId, state: msg.state, lastSeen: Date.now() });
+  });
+  port.onDisconnect.addListener(() => {
+    ports.delete(port);
+    if (tabId !== undefined) tabStates.delete(tabId);
+  });
   void Promise.all([loadOrCreateIdentity(), loadRoom()]).then(async ([base, room]) => {
     const identity = await loadOrCreateTabIdentity(tabId, base);
     try { port.postMessage({ type: 'state', identity, room } satisfies RuntimePushMessage); }
@@ -131,13 +155,36 @@ chrome.runtime.onConnect.addListener((port) => {
 // tabId starts fresh.
 chrome.tabs.onRemoved.addListener((tabId) => {
   void chrome.storage.session.remove(`${TAB_IDENTITY_KEY_PREFIX}${tabId}`);
+  tabStates.delete(tabId);
 });
+
+async function buildTabSummaries(): Promise<TabSummary[]> {
+  const base = await loadOrCreateIdentity();
+  const out: TabSummary[] = [];
+  for (const rec of tabStates.values()) {
+    let hostname = '';
+    try { hostname = new URL(rec.state.url).hostname; } catch { /* keep blank */ }
+    const identity = await loadOrCreateTabIdentity(rec.tabId, base);
+    out.push({
+      tabId: rec.tabId,
+      url: rec.state.url,
+      hostname,
+      identity,
+      room: rec.state.room,
+      peerCount: rec.state.peerCount,
+      lastSeen: rec.lastSeen,
+    });
+  }
+  // Stable ordering: most recently active first.
+  out.sort((a, b) => b.lastSeen - a.lastSeen);
+  return out;
+}
 
 // ---------------------------------------------------------------------------
 // One-shot popup messages
 // ---------------------------------------------------------------------------
 
-async function handle(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
+async function handle(msg: RuntimeMessage): Promise<RuntimeStateResponse | RuntimeTabsResponse> {
   const tabId = msg.tabId;
   switch (msg.type) {
     case 'getState': {
@@ -165,6 +212,9 @@ async function handle(msg: RuntimeMessage): Promise<RuntimeStateResponse> {
       const identity = await loadOrCreateTabIdentity(tabId, base);
       void broadcastState();
       return { identity, room: newRoom };
+    }
+    case 'getTabs': {
+      return { tabs: await buildTabSummaries() };
     }
   }
 }

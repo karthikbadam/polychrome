@@ -28,6 +28,18 @@ export const TAB_IDENTITY_KEY_PREFIX = 'polychrome.tabIdentity:';
 export type RuntimePushMessage =
   | { type: 'state'; identity: Identity; room: string | null };
 
+/** Posted by the content script to the SW over its long-lived port. */
+export interface BridgeTabState {
+  url: string;
+  /** Origin + pathname; the scope used to partition Trystero channels. */
+  urlScope: string;
+  room: string;
+  peerCount: number;
+}
+
+export type RuntimePortMessage =
+  | { type: 'tabState'; state: BridgeTabState };
+
 /**
  * One-shot requests from the popup to the SW.
  *
@@ -39,7 +51,27 @@ export type RuntimePushMessage =
 export type RuntimeMessage =
   | { type: 'getState'; tabId?: number }
   | { type: 'setRoom'; room: string | null; tabId?: number }
-  | { type: 'generateRoom'; tabId?: number };
+  | { type: 'generateRoom'; tabId?: number }
+  | { type: 'getTabs'; tabId?: number };
+
+/**
+ * One row in the cross-tab dashboard. Built by the SW from the latest
+ * `tabState` push received over each tab's port.
+ */
+export interface TabSummary {
+  tabId: number;
+  url: string;
+  hostname: string;
+  identity: Identity;
+  room: string;
+  peerCount: number;
+  /** Self-reported epoch ms of last `tabState` arrival - lets the popup mark stale tabs. */
+  lastSeen: number;
+}
+
+export interface RuntimeTabsResponse {
+  tabs: TabSummary[];
+}
 
 export interface RuntimeStateResponse {
   identity: Identity;

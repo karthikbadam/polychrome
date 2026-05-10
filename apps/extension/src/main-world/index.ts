@@ -119,6 +119,57 @@ function removeBadge(): void {
   document.getElementById(BADGE_ID)?.remove();
 }
 
+// ---------------------------------------------------------------------------
+// URL-scoped channel name
+// ---------------------------------------------------------------------------
+//
+// Two tabs in the same room only sync when they're on the same page -
+// "page" meaning origin + pathname (query strings and fragments are
+// often per-tab UI state, so they're stripped). The room id widens this
+// scope: peers can sit in many tabs on many pages all under one room
+// id, but each (room, url) pair gets its own Trystero channel so an
+// Observable page never crosstalks with a Mosaic demo.
+
+function urlScopeKey(href: string): string {
+  try {
+    const u = new URL(href);
+    return `${u.origin}${u.pathname}`;
+  } catch {
+    return href;
+  }
+}
+
+/** Short stable hash of a URL scope. djb2; just needs to agree across peers. */
+function urlScopeHash(scope: string): string {
+  let h = 5381;
+  for (let i = 0; i < scope.length; i++) h = ((h << 5) + h + scope.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+// ---------------------------------------------------------------------------
+// Tab state push (bridge -> content script -> SW)
+// ---------------------------------------------------------------------------
+//
+// The bridge runs in MAIN world, so it can't reach chrome.runtime
+// directly. We post a window message that the isolated-world content
+// script forwards over its long-lived port. The SW collects these in a
+// per-tab map so the popup can render a dashboard across tabs.
+
+const TAB_STATE_MESSAGE = 'polychrome:tabState';
+
+function broadcastTabState(): void {
+  if (!active) return;
+  window.postMessage({
+    source: TAB_STATE_MESSAGE,
+    state: {
+      url: window.location.href,
+      urlScope: urlScopeKey(window.location.href),
+      room: active.room,
+      peerCount: active.provider.peers.size,
+    },
+  }, window.location.origin);
+}
+
 function applyConfig(): void {
   const { identity, room } = readDataset();
 
@@ -137,7 +188,10 @@ function applyConfig(): void {
   teardown();
 
   const doc = new Y.Doc();
-  const provider = new TrysteroProvider(`polychrome-extension-${room}`, doc, {
+  // Scope sync to (room, url): peers on different URLs in the same
+  // room get different Trystero channels and so don't crosstalk.
+  const urlHash = urlScopeHash(urlScopeKey(window.location.href));
+  const provider = new TrysteroProvider(`polychrome-extension-${room}-${urlHash}`, doc, {
     appId: 'polychrome',
   });
   provider.awareness.setLocalStateField('user', identity);
@@ -163,6 +217,8 @@ function applyConfig(): void {
   const opsPanel = installOpsPanel(api);
 
   // Live badge: room id + peer count, ticks 1Hz off the provider.
+  // Same tick also pushes per-tab state to the SW so the popup can
+  // render the cross-tab dashboard.
   const updateBadge = (): void => {
     if (!active) return;
     const peers = active.provider.peers.size;
@@ -171,6 +227,7 @@ function applyConfig(): void {
         ? `PolyChrome · ${room} · waiting for a peer`
         : `PolyChrome · ${room} · ${peers} peer${peers > 1 ? 's' : ''}`;
     ensureBadge(label);
+    broadcastTabState();
   };
   const badgeTimer = window.setInterval(updateBadge, 1000);
 
