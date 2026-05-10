@@ -13,7 +13,7 @@
  */
 
 import * as Y from 'yjs';
-import { createPolyApi, TrysteroProvider, type PolyApi } from '@polychrome/kiosk';
+import { createPolyApi, installOpsPanel, TrysteroProvider, type PolyApi } from '@polychrome/kiosk';
 
 import { installCursors, type CursorsHandle } from './cursors.js';
 import { d3BrushAdapter } from './adapters/d3-brush.js';
@@ -40,6 +40,8 @@ let active: {
   room: string;
   cursors: CursorsHandle;
   adapterTeardown: () => void;
+  opsPanel: { destroy: () => void };
+  badgeTimer: number;
 } | null = null;
 
 function readDataset(): { identity: Identity | null; room: string | null } {
@@ -56,6 +58,8 @@ function readDataset(): { identity: Identity | null; room: string | null } {
 function teardown(): void {
   if (!active) return;
   try {
+    clearInterval(active.badgeTimer);
+    active.opsPanel.destroy();
     active.adapterTeardown();
     active.cursors.destroy();
     active.provider.awareness.setLocalState(null);
@@ -121,8 +125,26 @@ function applyConfig(): void {
     log: () => { /* replaced in registry */ },
     warn: () => { /* replaced in registry */ },
   });
-  active = { provider, doc, room, cursors, adapterTeardown };
-  ensureBadge(`PolyChrome - room ${room}`);
+
+  // Mount the same ops panel kiosk demos use, so the user can see
+  // every share/list/checkpoint op flowing through (incl. brush
+  // mirrors). It's a collapsed pill in the bottom-right by default.
+  const opsPanel = installOpsPanel(api);
+
+  // Live badge: room id + peer count, ticks 1Hz off the provider.
+  const updateBadge = (): void => {
+    if (!active) return;
+    const peers = active.provider.peers.size;
+    const label =
+      peers === 0
+        ? `PolyChrome · ${room} · waiting for a peer`
+        : `PolyChrome · ${room} · ${peers} peer${peers > 1 ? 's' : ''}`;
+    ensureBadge(label);
+  };
+  const badgeTimer = window.setInterval(updateBadge, 1000);
+
+  active = { provider, doc, room, cursors, adapterTeardown, opsPanel, badgeTimer };
+  updateBadge();
 }
 
 // ---------------------------------------------------------------------------

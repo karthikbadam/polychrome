@@ -24,7 +24,10 @@ function makeBrushGroup(opts: {
   selection?: { x: number; y: number; w: number; h: number } | null;
 }): SVGGElement {
   const g = document.createElementNS(SVG_NS, 'g') as unknown as SVGGElement;
-  (g as Element).setAttribute('class', 'brush');
+  // Mosaic uses interval-x / interval-y rather than class="brush";
+  // the adapter matches structurally so any class works. Use a
+  // non-`brush` class to cover the Mosaic case.
+  (g as Element).setAttribute('class', 'interval-x');
 
   const overlay = document.createElementNS(SVG_NS, 'rect');
   overlay.setAttribute('class', 'overlay');
@@ -158,6 +161,32 @@ describe('findBrushGroups', () => {
   it('returns [] when there are no brushes', () => {
     expect(findBrushGroups()).toEqual([]);
   });
+
+  it('matches structurally regardless of group class (Mosaic interval-x etc.)', () => {
+    const wrap = document.createElement('div');
+    // Class names lifted straight from Mosaic vgplot output.
+    const classes = ['interval-x', 'interval-y', 'interval-xy', 'brush'];
+    for (const cls of classes) {
+      const g = makeBrushGroup({ overlay: { w: 100, h: 50 } });
+      (g as Element).setAttribute('class', cls);
+      wrap.appendChild(g);
+    }
+    document.body.appendChild(wrap);
+    expect(findBrushGroups()).toHaveLength(classes.length);
+  });
+
+  it('ignores <g> elements that lack both overlay+selection children', () => {
+    const wrap = document.createElement('div');
+    const decoy = document.createElementNS(SVG_NS, 'g');
+    decoy.setAttribute('class', 'brush');
+    // Has selection rect but NO overlay rect.
+    const sel = document.createElementNS(SVG_NS, 'rect');
+    sel.setAttribute('class', 'selection');
+    decoy.appendChild(sel);
+    wrap.appendChild(decoy);
+    document.body.appendChild(wrap);
+    expect(findBrushGroups()).toEqual([]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -221,7 +250,10 @@ describe('applyBrush', () => {
 
   it('is a no-op if there is no overlay rect', () => {
     const g = document.createElementNS(SVG_NS, 'g') as unknown as SVGGElement;
-    (g as Element).setAttribute('class', 'brush');
+    // Mosaic uses interval-x / interval-y rather than class="brush";
+  // the adapter matches structurally so any class works. Use a
+  // non-`brush` class to cover the Mosaic case.
+  (g as Element).setAttribute('class', 'interval-x');
     expect(() => applyBrush(g, { sel: [0, 0, 10, 10], ow: 100, oh: 50 })).not.toThrow();
   });
 });

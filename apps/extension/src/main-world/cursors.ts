@@ -98,7 +98,15 @@ export function installCursors(opts: CursorOptions): CursorsHandle {
   layer.className = 'pc-cursor-layer';
   layer.style.cssText =
     'position:fixed;inset:0;pointer-events:none;z-index:2147483646;overflow:hidden;';
-  host.appendChild(layer);
+  // The bridge runs at document_start, so `source.body` may be null
+  // when installCursors fires. Defer the append until the body is
+  // there.
+  const attachLayer = (): void => {
+    const target = opts.host ?? source.body;
+    if (target) target.appendChild(layer);
+    else source.addEventListener('DOMContentLoaded', attachLayer, { once: true });
+  };
+  attachLayer();
 
   // -- Local broadcast -----------------------------------------------------
 

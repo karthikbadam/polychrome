@@ -48,9 +48,28 @@ export interface BrushSnapshot {
   oh: number;
 }
 
-/** Find every d3-brush group in document order. */
+/**
+ * Find every d3-brush-like group in document order.
+ *
+ * d3-brush itself ships groups with `class="brush"`, but consumers
+ * (Mosaic plot marks, vgplot intervalX/Y/XY, plenty of bespoke
+ * code) often use a different class while keeping the
+ * `rect.overlay` + `rect.selection` child structure intact. Match
+ * structurally: any `<g>` that contains both children is a brush.
+ */
 export function findBrushGroups(root: ParentNode = document): SVGGElement[] {
-  return Array.from(root.querySelectorAll<SVGGElement>('g.brush'));
+  const out: SVGGElement[] = [];
+  const seen = new Set<SVGGElement>();
+  for (const sel of root.querySelectorAll('rect.selection')) {
+    const parent = sel.parentElement;
+    if (!parent || parent.tagName !== 'g' && parent.tagName !== 'G') continue;
+    const g = parent as unknown as SVGGElement;
+    if (seen.has(g)) continue;
+    if (!parent.querySelector(':scope > rect.overlay')) continue;
+    seen.add(g);
+    out.push(g);
+  }
+  return out;
 }
 
 /** Read a brush group's current selection + overlay dimensions. */
