@@ -83,17 +83,25 @@ Z (end-to-end integration smoke). Per-track briefs live under
 
 ```bash
 pnpm install
-pnpm test                                       # ~236 tests
+pnpm test                                       # ~265 tests
 pnpm build                                      # turbo builds every package
 pnpm --filter @polychrome/example-drawing dev   # localhost:5173
 ```
 
-To stage the GH Pages bundle locally:
+`pnpm <demo> dev` runs **only that demo** on its own Vite port. The
+landing page's demo cards link with relative paths (`./examples/<x>/`)
+so they only resolve when every demo is mounted under one origin —
+which the dev servers don't do.
+
+To exercise the full hosted-demo flow locally (landing + all four
+demos under one origin, just like production):
 
 ```bash
-PC_PUBLISH_BASE=/polychrome/ bash scripts/build-gh-pages.sh
-npx serve gh-pages-out
+pnpm preview         # builds gh-pages-out/ and serves it on :5180
 ```
+
+This is the right local target for testing cross-demo navigation,
+the kiosk transport, and the room-share invite link.
 
 ## Hosted demos (no extension needed)
 
