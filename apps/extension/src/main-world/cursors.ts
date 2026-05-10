@@ -36,6 +36,11 @@ export interface CursorOptions {
   /** Throttle interval in ms. */
   throttleMs?: number;
   /** Time since last move that hides a remote cursor. */
+  /**
+   * @deprecated No longer used. We do not gate remote cursors on
+   * cross-device timestamps because clock skew silently filters them.
+   * Awareness culls truly stale peers on its own.
+   */
   staleMs?: number;
   /** Injected for tests. */
   now?: () => number;
@@ -91,7 +96,7 @@ export function installCursors(opts: CursorOptions): CursorsHandle {
   const source = opts.source ?? document;
   const host = opts.host ?? source.body;
   const throttleMs = opts.throttleMs ?? 33;
-  const staleMs = opts.staleMs ?? 5_000;
+  void opts.staleMs; // deprecated, see type docs
   const now = opts.now ?? Date.now;
 
   const layer = source.createElementNS(NS, 'div') as HTMLDivElement;
@@ -166,7 +171,11 @@ export function installCursors(opts: CursorOptions): CursorsHandle {
       const c = s?.cursor;
       if (!u || !c) continue;
       if (u.actorId === opts.self.actorId) continue;
-      if (t - c.t > staleMs) continue;
+      // No staleness check: comparing the sender's Date.now() against
+      // ours fights NTP drift / cross-device clock skew and would
+      // silently filter out remote cursors. Awareness's own
+      // outdated-state timeout (default 30s) handles real abandonment.
+      void t;
       seen.add(u.actorId);
 
       const dot = ensureDot(u.actorId, u.color);

@@ -13,7 +13,7 @@
  */
 
 import * as Y from 'yjs';
-import { createPolyApi, installOpsPanel, TrysteroProvider, type PolyApi } from '@polychrome/kiosk';
+import { createPolyApi, ensureBottomBar, installOpsPanel, TrysteroProvider, type PolyApi } from '@polychrome/kiosk';
 
 import { installCursors, type CursorsHandle } from './cursors.js';
 import { d3BrushAdapter } from './adapters/d3-brush.js';
@@ -69,25 +69,42 @@ function teardown(): void {
   active = null;
 }
 
+const BADGE_ID = 'polychrome-extension-badge';
+
+/**
+ * The bridge's status badge lives inside the kiosk's shared bottom-bar
+ * so it sits next to the ops toggle on the bottom-left (rather than
+ * floating on the right corner). Styling matches the ops toggle: same
+ * height, same purple accent, same backdrop blur.
+ */
 function ensureBadge(label: string): void {
-  let el = document.getElementById('polychrome-extension-badge');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'polychrome-extension-badge';
-    el.style.cssText = [
-      'position:fixed', 'right:12px', 'bottom:12px', 'z-index:1000',
-      'font:12px/1.4 -apple-system,system-ui,sans-serif',
-      'background:rgba(28,31,37,0.95)', 'color:#5cffb1',
-      'border:1px solid #5cffb1', 'border-radius:10px',
-      'padding:6px 12px', 'pointer-events:none',
-    ].join(';');
-    (document.body ?? document.documentElement).appendChild(el);
-  }
-  el.textContent = label;
+  const mount = (): void => {
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', mount, { once: true });
+      return;
+    }
+    const bar = ensureBottomBar(document);
+    let el = document.getElementById(BADGE_ID);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = BADGE_ID;
+      el.style.cssText = [
+        'display:inline-flex', 'align-items:center', 'gap:6px',
+        'font:12px/1.4 -apple-system,system-ui,sans-serif',
+        'background:rgba(28,31,37,0.95)', 'color:#7c5cff',
+        'border:1px solid #7c5cff', 'border-radius:10px',
+        'padding:8px 12px', 'backdrop-filter:blur(6px)',
+        'box-shadow:0 4px 16px rgba(0,0,0,0.3)',
+      ].join(';');
+      bar.appendChild(el);
+    }
+    el.textContent = label;
+  };
+  mount();
 }
 
 function removeBadge(): void {
-  document.getElementById('polychrome-extension-badge')?.remove();
+  document.getElementById(BADGE_ID)?.remove();
 }
 
 function applyConfig(): void {

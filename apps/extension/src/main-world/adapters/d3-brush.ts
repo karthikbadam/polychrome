@@ -212,7 +212,13 @@ export const d3BrushAdapter: SiteAdapter = {
         applyingRemote = true;
         try { applyBrush(node, snap); }
         catch (err) { ctx.warn('applyBrush failed for', key, err); }
-        finally { applyingRemote = false; }
+        // Defer the flag flip past the next microtask. d3-brush's
+        // synthetic-event handlers run synchronously and mutate the
+        // .selection rect, but MutationObserver delivers its callback
+        // as a microtask AFTER applyBrush returns. If we cleared the
+        // flag in `finally`, the observer would see applyingRemote=false,
+        // treat our own replay as a fresh local drag, and rebroadcast.
+        Promise.resolve().then(() => { applyingRemote = false; });
       });
 
       installed.set(index, { cleanup: () => { obs.disconnect(); unsub(); } });

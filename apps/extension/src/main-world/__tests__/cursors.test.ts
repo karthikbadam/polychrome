@@ -150,27 +150,26 @@ describe('installCursors', () => {
     h.destroy();
   });
 
-  it('skips peers whose cursor is older than staleMs', () => {
-    let now = 10_000;
+  it('renders a peer regardless of cursor.t age (no clock-skew gate)', () => {
+    // Earlier versions filtered remote cursors by comparing the
+    // sender's Date.now() in cursor.t against the receiver's now().
+    // That tripped on cross-device clock skew and would silently drop
+    // cursors. Awareness culls truly stale peers on its own; this
+    // test pins the new behavior.
     const aw = fakeAwareness();
     aw.states.set(2, {
       user: { actorId: 'B', name: 'bob', color: '#ff5c7c' },
-      cursor: { x: 1, y: 2, t: 0 }, // 10s old
+      cursor: { x: 1, y: 2, t: 0 }, // looks 'old' on a now-10s clock
     });
 
     const h = installCursors({
       awareness: aw as unknown as Parameters<typeof installCursors>[0]['awareness'],
       self: { actorId: 'A', name: 'alice', color: '#7c5cff' },
       host,
-      now: () => now,
-      staleMs: 5_000,
+      now: () => 10_000,
     });
 
-    expect(host.querySelectorAll('.pc-cursor')).toHaveLength(0);
-    // Move time forward so it remains stale; verify still no cursor.
-    now = 12_000;
-    h.render();
-    expect(host.querySelectorAll('.pc-cursor')).toHaveLength(0);
+    expect(host.querySelectorAll('.pc-cursor')).toHaveLength(1);
     h.destroy();
   });
 

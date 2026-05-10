@@ -31,6 +31,7 @@ export type { PolyApi, OpLogRecord, SelfInfo } from './api.js';
 export { createPolyApi } from './api.js';
 export { installOpsPanel } from './ops-panel.js';
 export { TrysteroProvider } from './trystero-provider.js';
+export { ensureBottomBar } from './bottom-bar.js';
 
 declare global {
   interface Window {
