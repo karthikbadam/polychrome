@@ -13,14 +13,17 @@ an extension-free "kiosk" runtime that powers the hosted demos.
   and cursor presence all replicate. Late joiners see the full
   current state immediately.
 - The Chrome MV3 extension injects `window.polychrome` on allowlisted
-  pages. Two browsers in the same room see each other's live cursors
-  on **any** page the extension matches; on pages that opt in (our
-  demos), full state syncs too.
+  pages — its job is to add the same collaboration to **third-party
+  visualization sites** that haven't opted in. Our hosted demos
+  don't need it (the kiosk runtime ships with them).
+- A **d3-brush DOM mirror** adapter watches `<g class="brush">`
+  groups on any allowlisted page (Mosaic, Vega-style, bl.ocks,
+  Observable, plain d3) and replicates brush selections between
+  peers via dispatched mouse events on the brush overlay. No page
+  cooperation required.
 - Per-page op log: every share / list / checkpoint mutation is
   recorded into a shared Yjs array, viewable as a Timeline in the
   side panel with a one-click "Undo last" for the local actor.
-- Best-effort site adapter for [Mosaic](https://idl.uw.edu/mosaic/)
-  that mirrors brush/filter selections between peers.
 
 ## Repository layout
 
@@ -66,7 +69,7 @@ Built and merged on this branch:
 | I content script | reads SW state, hands config to MAIN-world bridge via dataset |
 | J page bridge | MAIN-world script that installs `window.polychrome` on the page |
 | K side panel | identity, room, peers, History timeline, Undo last |
-| N adapters | adapter framework (registry, types) + Mosaic adapter |
+| N adapters | adapter registry + d3-brush DOM mirror (covers Mosaic, vgplot, bl.ocks, plain d3 — any page rendering a `<g class="brush">`) |
 | O examples | drawing, scatterplot, choropleth |
 | P publish | landing page, build script, GH Actions workflow |
 
@@ -158,22 +161,69 @@ The side panel shows your identity, the active room, live peers
 op produced by anyone in the room, and an "Undo last" button that
 rolls back your most recent action.
 
-## Allowlisted sites
+## Allowlisted sites and the d3-brush adapter
 
-The extension's manifest matches:
+The extension's value proposition is bringing collaboration to
+**pages we don't own**. Our hosted demos already use the kiosk
+runtime, so the extension is a no-op on the demo origin (it skips
+itself to avoid double-mirroring).
 
-- `karthikbadam.github.io/polychrome/*` (our demos)
-- `idl.uw.edu/mosaic/*` and `uwdata.github.io/mosaic/*` (Mosaic adapter)
-- Observable, Vega editor, bl.ocks, Tableau Public (live cursors only;
-  no site adapter yet)
-- `localhost`
+The manifest matches:
 
-On Mosaic pages, the adapter probes for the live coordinator
-(`mc`, `mosaic.coordinator`, `vg.coordinator`, `vgplot.coordinator`)
-and mirrors each `Selection`'s value through `polychrome.share()`,
-so brushes propagate between peers. The adapter is best-effort: if
-Mosaic's API drifts it logs a warning and degrades to a no-op
-without crashing the bridge.
+- `idl.uw.edu/mosaic/*` and `uwdata.github.io/mosaic/*` (Mosaic
+  examples)
+- `observablehq.com/*` and `*.observableusercontent.com/*`
+- `vega.github.io/editor/*`
+- `bl.ocks.org/*`
+- `public.tableau.com/*`
+- `karthikbadam.github.io/polychrome/*` (the cursors layer is fine,
+  the d3-brush adapter explicitly skips this origin)
+- `localhost` (with the demo dev ports excluded)
+
+### How sync works on third-party pages
+
+Live cursors run everywhere — the bridge captures pointer events
+itself and renders peer arrows over the page. No page cooperation
+needed.
+
+Beyond cursors, modern viz libraries like Mosaic keep their
+`Coordinator` / `Selection` objects inside ESM module closures we
+can't reach from a `<script>`. So instead of trying to hook the
+library, we **mirror the DOM that any d3-brush-backed page
+produces**:
+
+```
+<g class="brush">
+  <rect class="overlay" .../>
+  <rect class="selection" x y width height [display:none when empty]/>
+  <rect class="handle handle--n" />
+  ...
+</g>
+```
+
+The adapter (`apps/extension/src/main-world/adapters/d3-brush.ts`):
+
+1. Discovers every `g.brush` in document order. A `MutationObserver`
+   on `document.body` picks up brushes that appear async (Mosaic
+   renders plots after data load).
+2. Watches each brush's selection rect for attribute changes; when
+   the local user drags, it broadcasts
+   `{ sel: [x,y,w,h] | null, ow, oh }` via
+   `polychrome.share('brush.<index>')`. Overlay dimensions travel
+   with the snapshot so peers with different viewport sizes
+   re-scale correctly.
+3. On a remote update, dispatches `mousedown / mousemove /
+   mousemove / mouseup` on the brush overlay at the recorded
+   extent's corners. d3-brush's state machine listens for those on
+   the overlay, so it drives its `'brush'`/`'end'` events normally
+   and the page's downstream selection / re-render logic runs as
+   if the user had dragged.
+
+Because every d3-driven viz page (Mosaic, vgplot, bl.ocks examples,
+plain d3) renders brushes the same way, this single adapter covers
+the whole d3 ecosystem. Pages that don't use a d3 brush (Tableau
+Public, Observable runtimes that paint their own selection UI) get
+live cursors only — they need their own adapter to sync state.
 
 ## Op log + undo
 

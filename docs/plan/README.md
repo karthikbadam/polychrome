@@ -115,7 +115,7 @@ Built and merged on the active branch:
 | K side-panel UI | done | identity, room controls, peer list (deduped by actorId), History timeline, Undo last |
 | L devtools panel | not started | brief in `tracks/L-ui-devtools.md` |
 | M popup + options | partial | popup ships; options page still scaffolded |
-| N site adapters | done (best-effort) | adapter registry + Mosaic adapter (best-effort: probes coordinator globals, mirrors selections); 24 tests |
+| N site adapters | done | adapter registry + d3-brush DOM mirror (works on any page that renders a `<g class="brush">`: Mosaic, vgplot, bl.ocks, plain d3). Discovers brushes via MutationObserver, broadcasts the selection rect, replays on remote via dispatched mouse events on the brush overlay. 17 jsdom tests. |
 | O examples | done | drawing, scatterplot, choropleth (D3 v7) - all wired through the kiosk transport |
 | P publish (gh-pages) | done | landing page, `scripts/build-gh-pages.sh`, `.github/workflows/pages.yml` |
 | Z integration | not started | end-to-end smoke once L/M land |
@@ -131,6 +131,13 @@ apply inverses through the same observer-aware code path the demos
 use. 34 tests.
 
 The kiosk is a hosted-demo shortcut and the page bridge backbone.
+On our hosted demos the kiosk is the only thing that runs; the
+extension is unnecessary there (and explicitly skips them via the
+adapter URL matcher to avoid double-mirroring). On third-party
+pages the extension reuses the same kiosk surface, then layers a
+**d3-brush DOM mirror** on top to sync brush selections between
+peers without needing the page to call `polychrome.share()`.
+
 The plan also describes an OT-with-event-capture path - recording
 arbitrary DOM events as `Operation`s through per-site adapters into
 `@polychrome/storage`'s op log; that path coexists in the codebase
