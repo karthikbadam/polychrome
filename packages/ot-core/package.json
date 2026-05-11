@@ -1,0 +1,25 @@
+{
+  "name": "@polychrome/ot-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@polychrome/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.5",
+    "fast-check": "^3.23.2",
+    "typescript": "~5.8.3",
+    "vitest": "^4.1.5"
+  }
+}

@@ -1,0 +1,213 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --bg: #0e0f12;
+  --bg-soft: #16181c;
+  --bg-card: #1c1f25;
+  --border: #2a2e36;
+  --fg: #e8eaed;
+  --fg-soft: #a1a8b3;
+  --accent: #7c5cff;
+  --accent-soft: #b9a8ff;
+  --r: #ff5c7c;
+  --y: #ffc857;
+  --g: #5cffb1;
+  --b: #5ccfff;
+  --rad: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Inter", sans-serif;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #fafbfc;
+    --bg-soft: #f1f3f5;
+    --bg-card: #ffffff;
+    --border: #e1e4e8;
+    --fg: #1a1d23;
+    --fg-soft: #586069;
+    --accent: #6240e8;
+    --accent-soft: #4a2dc2;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  /* dvh accounts for mobile browser chrome; reserve 56px at the bottom
+     so the kiosk connection banner never overlaps the chart. */
+  height: 100dvh;
+  padding-bottom: 56px;
+}
+
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-group label {
+  font-size: 13px;
+  color: var(--fg-soft);
+  font-weight: 600;
+}
+
+select {
+  font-size: 13px;
+  background: var(--bg-soft);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  outline: none;
+}
+
+select:focus {
+  border-color: var(--accent);
+}
+
+.btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  background: var(--bg-soft);
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.btn.primary:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-soft);
+  color: white;
+}
+
+#chart-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+}
+
+#chart-area svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dot {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.dot.dimmed {
+  opacity: 0.2;
+}
+
+.dot.selected {
+  stroke: var(--fg);
+  stroke-width: 1.5;
+}
+
+.axis-label {
+  font-size: 12px;
+  fill: var(--fg-soft);
+}
+
+.axis path,
+.axis line {
+  stroke: var(--border);
+}
+
+.axis text {
+  fill: var(--fg-soft);
+  font-size: 11px;
+}
+
+.brush .selection {
+  fill: var(--accent);
+  fill-opacity: 0.12;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+  shape-rendering: crispEdges;
+}
+.brush .handle { fill: transparent; }
+.brush .overlay { cursor: crosshair; }
+
+.hint {
+  font-size: 11px;
+  color: var(--fg-soft);
+  margin-left: auto;
+}
+
+.legend {
+  position: absolute;
+  bottom: 48px;
+  right: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--rad);
+  padding: 10px 14px;
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  #controls { padding: 8px 12px; gap: 8px; font-size: 12px; }
+  .control-group label { font-size: 12px; }
+  select, .btn { font-size: 12px; padding: 4px 8px; }
+  .legend { bottom: 90px; right: 8px; padding: 8px 10px; font-size: 11px; }
+  .axis text { font-size: 10px; }
+}

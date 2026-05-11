@@ -1,0 +1,33 @@
+{
+  "name": "@polychrome/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@polychrome/kiosk": "workspace:*",
+    "@polychrome/ot-core": "workspace:*",
+    "@polychrome/protocol": "workspace:*",
+    "@polychrome/replay-player": "workspace:*",
+    "@polychrome/sdk": "workspace:*",
+    "fflate": "^0.8.2",
+    "idb": "^8.0.3",
+    "peerjs": "^1.5.5",
+    "yjs": "^13.6.30"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "2.4.0",
+    "@types/chrome": "^0.0.325",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^29.1.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^4.1.5"
+  }
+}

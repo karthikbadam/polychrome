@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PolyChrome 2.0 - collaborative web visualization</title>
+    <meta name="description" content="A modern Chrome extension that turns any allowlisted webpage into a real-time, peer-to-peer collaborative space, with full action replay via operational transformation." />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <h1>PolyChrome <span class="ver">2.0</span></h1>
+      </div>
+      <nav>
+        <a href="#demos">Demos</a>
+        <a href="#install">Install</a>
+        <a href="#docs">Docs</a>
+        <a href="https://github.com/karthikbadam/polychrome">GitHub</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h2>Collaborative web visualization,<br />in your browser.</h2>
+      <p class="lede">
+        PolyChrome 2.0 is a Chrome extension that turns curated visualization
+        pages into shared spaces. Move your cursor and your peers see it.
+        Brush a chart and the selection replicates. Every action drops into
+        a shared timeline, and the side panel can undo your most recent move.
+      </p>
+      <p class="lede">
+        Fully peer-to-peer over WebRTC. No backend, no accounts.
+        A canonical, invertible op log per session.
+      </p>
+      <div class="cta">
+        <a class="btn primary" href="#install">Install the extension</a>
+        <a class="btn ghost" href="#demos">Try a demo</a>
+      </div>
+    </section>
+
+    <section id="demos">
+      <h3>Demos</h3>
+      <p class="section-lede">
+        Standalone, hosted example apps. They work without the extension -
+        with it installed and a peer joined to the same room, every interaction
+        synchronizes in real time.
+      </p>
+      <div class="cards">
+        <a class="card" href="./examples/drawing/">
+          <h4>Drawing</h4>
+          <p>Shared whiteboard. Strokes append to a CRDT list, so a
+            late-joining peer sees every existing stroke immediately.</p>
+          <span class="card-cta">Open →</span>
+        </a>
+        <a class="card" href="./examples/scatterplot/">
+          <h4>Scatterplot</h4>
+          <p>Iris dataset, D3 v7. Brush selection and X/Y axis choices
+            replicate across peers.</p>
+          <span class="card-cta">Open →</span>
+        </a>
+        <a class="card" href="./examples/choropleth/">
+          <h4>Choropleth</h4>
+          <p>US states, year slider, pinned-state list. Slider position
+            and pinned set sync between peers.</p>
+          <span class="card-cta">Open →</span>
+        </a>
+        <a class="card" href="./examples/planets/">
+          <h4>Planets explorer</h4>
+          <p>Nine coordinated views over an exoplanet dataset. Brush
+            any view to filter the rest; filter ops are
+            dimension-keyed so peers on a desktop grid and a mobile
+            pager share the same selection.</p>
+          <span class="card-cta">Open →</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="install">
+      <h3>Install the extension</h3>
+      <ol class="steps">
+        <li>
+          <span class="num">1</span>
+          <div>
+            <strong>Download the build.</strong>
+            <a class="dl" href="./extension.zip">extension.zip</a>
+            <p class="hint">It's an unpacked Chrome MV3 extension - open-source, no telemetry.</p>
+          </div>
+        </li>
+        <li>
+          <span class="num">2</span>
+          <div>
+            <strong>Extract</strong> the zip. You'll get a <code>dist/</code>
+            folder.
+          </div>
+        </li>
+        <li>
+          <span class="num">3</span>
+          <div>
+            Open <code>chrome://extensions</code>, enable
+            <strong>Developer mode</strong>, click
+            <strong>Load unpacked</strong>, and select the
+            <code>dist/</code> folder.
+          </div>
+        </li>
+        <li>
+          <span class="num">4</span>
+          <div>
+            Click the PolyChrome icon in the toolbar, create a session, share
+            the 6-character room code with a peer. Open one of the demos
+            above on both devices.
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="docs">
+      <h3>For developers</h3>
+      <p>
+        Architecture, protocol, OT spec, and per-track briefs live in
+        <a href="https://github.com/karthikbadam/PolyChrome/tree/main/docs/plan">docs/plan/</a>.
+        The implementation is a pnpm workspace with a thin extension shell
+        on top of four small TypeScript packages
+        (<code>protocol</code>, <code>ot-core</code>, <code>sdk</code>,
+        <code>replay-player</code>).
+      </p>
+      <p>
+        PolyChrome 2.0 is a reimplementation of the
+        <a href="https://dl.acm.org/doi/10.1145/2669485.2669518">2014 PolyChrome
+        paper</a> by Karthik Badam &amp; Niklas Elmqvist (ITS '14). The
+        original system used a Node proxy and PeerJS signaling; this
+        version keeps the peer-to-peer spirit, moves everything client-side,
+        and adds an OT-based replay/undo layer.
+      </p>
+    </section>
+
+    <footer>
+      <p>
+        © 2026 PolyChrome contributors ·
+        <a href="https://github.com/karthikbadam/PolyChrome">source</a> ·
+        based on Badam &amp; Elmqvist, ITS 2014.
+      </p>
+    </footer>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

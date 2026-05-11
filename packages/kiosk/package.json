@@ -1,0 +1,27 @@
+{
+  "name": "@polychrome/kiosk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@trystero-p2p/nostr": "^0.23.1",
+    "lib0": "^0.2.117",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.18"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.0",
+    "typescript": "~5.8.3",
+    "vitest": "^4.1.5"
+  }
+}

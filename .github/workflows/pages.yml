@@ -1,0 +1,69 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      # Also build the active feature branch so we can preview before merge.
+      # Only the latest run for a branch is kept (concurrency below).
+      - 'claude/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        env:
+          # Must match the GitHub Pages project path. Repo name is lowercase
+          # 'polychrome' so the served path is /polychrome/. (GitHub Pages
+          # paths ARE case-sensitive even though repo URLs aren't.)
+          PC_PUBLISH_BASE: /polychrome/
+        run: bash scripts/build-gh-pages.sh
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: gh-pages-out
+
+  deploy:
+    needs: build
+    # Deploy from default branch OR from the active feature branch as a
+    # preview. Concurrency (above) ensures only the latest run per ref wins.
+    #
+    # PREREQUISITE (one-time): repo Settings → Pages → Source: GitHub Actions.
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/claude/')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

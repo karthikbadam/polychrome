@@ -1,0 +1,28 @@
+{
+  "name": "@polychrome/example-choropleth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@polychrome/kiosk": "workspace:*",
+    "@polychrome/sdk": "workspace:*",
+    "d3": "^7.9.0",
+    "topojson-client": "^3.1.0",
+    "yjs": "^13.6.30"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/topojson-client": "^3.1.4",
+    "@types/topojson-specification": "^1.0.5",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^4.1.5"
+  }
+}

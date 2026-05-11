@@ -1,0 +1,134 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --bg: #0e0f12;
+  --bg-soft: #16181c;
+  --bg-card: #1c1f25;
+  --border: #2a2e36;
+  --fg: #e8eaed;
+  --fg-soft: #a1a8b3;
+  --accent: #7c5cff;
+  --accent-soft: #b9a8ff;
+  --r: #ff5c7c;
+  --y: #ffc857;
+  --g: #5cffb1;
+  --b: #5ccfff;
+  --rad: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Inter", sans-serif;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #fafbfc;
+    --bg-soft: #f1f3f5;
+    --bg-card: #ffffff;
+    --border: #e1e4e8;
+    --fg: #1a1d23;
+    --fg-soft: #586069;
+    --accent: #6240e8;
+    --accent-soft: #4a2dc2;
+    --shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+#canvas-container {
+  position: relative;
+  width: 100vw;
+  /* dvh keeps mobile browser chrome out of the way. Reserve 56px at the
+     bottom for the kiosk connection banner so it never overlaps the
+     drawing surface. */
+  height: calc(100dvh - 56px);
+}
+
+#drawing-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+#toolbar {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--rad);
+  padding: 10px 16px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+}
+
+.toolbar-label {
+  font-size: 13px;
+  color: var(--fg-soft);
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.color-swatch.active {
+  border-color: var(--fg);
+  transform: scale(1.2);
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.btn-clear {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--r);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-clear:hover {
+  background: rgba(255, 92, 124, 0.12);
+}
+
+/* Mobile */
+@media (max-width: 720px) {
+  #toolbar { padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
+  .color-swatch { width: 24px; height: 24px; }
+  .btn-clear { font-size: 12px; padding: 4px 10px; }
+  canvas { touch-action: none; }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@polychrome/example-drawing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@polychrome/kiosk": "workspace:*",
+    "@polychrome/sdk": "workspace:*",
+    "yjs": "^13.6.30"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^4.1.5"
+  }
+}

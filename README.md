@@ -1,83 +1,252 @@
-PolyChrome
-=====
+# PolyChrome 2.0
 
-A web application framework for collaborative web browsing of both static web pages and dynamic web visualizations.
-[PolyChrome is currently under development and we are rapidly improving it. Please contact [us](http://karthikbadam.azurewebsites.net) if you are interested and would like to contribute to our project in any way.]
+A modern reimplementation of [PolyChrome (Badam & Elmqvist, ITS '14)](https://dl.acm.org/doi/10.1145/2669485.2669518)
+as a Chrome MV3 extension with a fully peer-to-peer architecture, plus
+an extension-free "kiosk" runtime that powers the hosted demos.
 
-### To build:
+**Live demos:** https://karthikbadam.github.io/polychrome/
 
-Prerequisites (both Windows and Unix):
-    
-    * Python 2.6 or 2.7  
-    * Visual Studio 2010 or 2012 (Windows)
-    * GCC 4.2 or newer (Unix) 
-    * Node.js (http://nodejs.org/download/)
-    
-   
-How to download:
+## What works today
 
-    * git clone https://github.com/karthikbadam/PolyChrome.git
+- Three demos (drawing, scatterplot, choropleth) sync between peers
+  in real time over WebRTC. Brushing, axis selection, list updates,
+  and cursor presence all replicate. Late joiners see the full
+  current state immediately.
+- The Chrome MV3 extension injects `window.polychrome` on allowlisted
+  pages — its job is to add the same collaboration to **third-party
+  visualization sites** that haven't opted in. Our hosted demos
+  don't need it (the kiosk runtime ships with them).
+- A **d3-brush DOM mirror** adapter watches `<g class="brush">`
+  groups on any allowlisted page (Mosaic, Vega-style, bl.ocks,
+  Observable, plain d3) and replicates brush selections between
+  peers via dispatched mouse events on the brush overlay. No page
+  cooperation required.
+- Per-page op log: every share / list / checkpoint mutation is
+  recorded into a shared Yjs array, viewable as a Timeline in the
+  side panel with a one-click "Undo last" for the local actor.
 
-  
-###How to install and run:
+## Repository layout
 
-- PolyChrome has numerous dependencies, but thanks to npm (a package manager for node.js), they can all be installed with a single command. Open the PolyChrome folder in your command prompt or terminal and type in:
+```
+apps/
+  extension/        Chrome MV3 extension (background SW, content script,
+                    MAIN-world bridge, popup, side panel, adapters)
+  landing/          GitHub Pages landing page
+packages/
+  protocol/         canonical Operation schema + codec
+  ot-core/          pure OT transform/invert + leader election
+  storage/          IndexedDB op log + snapshots + .polychrome.zip
+  sdk/              page-side window.polychrome surface
+  kiosk/            Yjs+y-webrtc runtime that backs the hosted demos
+                    AND the extension's MAIN-world bridge
+  replay-player/    Timeline UI component (used by the side panel)
+examples/           drawing, scatterplot, choropleth (D3 v7)
+docs/plan/          architecture + per-track briefs
+legacy/             archived 2014 PolyChrome code
+scripts/
+  build-gh-pages.sh stages everything for the GH Pages workflow
+.github/workflows/
+  ci.yml            lint, typecheck, test, build, upload extension artifact
+  pages.yml         build + deploy to https://karthikbadam.github.io/polychrome/
+```
 
+## Status by track
 
-    * npm install
-    
-    
-- This should take care of the dependencies. Note that PolyChrome is built to use [Express](http://expressjs.com/), a web application framework for node.js.
-    
-- Now, you can run PolyChrome using:
+See [`docs/plan/README.md`](docs/plan/README.md) for the full table.
 
+Built and merged on this branch:
 
-    * node polychrome-server.js
+| Track | Notes |
+|---|---|
+| A scaffold | pnpm + Vite + crxjs + Turborepo + ESLint/Prettier/Vitest |
+| B protocol | `@polychrome/protocol` |
+| C ot-core | transform/invert/leader/state |
+| D storage | IndexedDB op log, snapshots, `.polychrome.zip` import/export |
+| E signaling+mesh | peerjs-public, p2pcf-worker, mdns adapters; 30 Hz cursor throttle |
+| F sdk | page-side `window.polychrome` (the original SDK surface) |
+| G replay-player | `createTimeline()` widget; powers the side-panel History |
+| H background SW | identity + room state; runtime port hub for content scripts |
+| I content script | reads SW state, hands config to MAIN-world bridge via dataset |
+| J page bridge | MAIN-world script that installs `window.polychrome` on the page |
+| K side panel | identity, room, peers, History timeline, Undo last |
+| N adapters | adapter registry + d3-brush DOM mirror (covers Mosaic, vgplot, bl.ocks, plain d3 — any page rendering a `<g class="brush">`) |
+| O examples | drawing, scatterplot, choropleth |
+| P publish | landing page, build script, GH Actions workflow |
 
-- PolyChrome has two server components: (1) A proxy server to handle requests from the clients (running at port 3000), and (2) a modified version of [PeerJS](http://peerjs.com/) server to handle the connections between peers/clients (running at port 8080).
+Out-of-plan: **`@polychrome/kiosk`** is a Yjs-over-y-webrtc runtime
+shared by the hosted demos and the extension's MAIN-world bridge.
+It exposes `createPolyApi(ydoc, self)` with `share()`, `list()`,
+`checkpoint()`, `self`, and a `history` surface (op log + undo).
 
+Not yet implemented: L (devtools panel), M (popup polish + options),
+Z (end-to-end integration smoke). Per-track briefs live under
+`docs/plan/tracks/`.
 
-###PolyChrome API modules:
+## Quick start
 
-- PolyChrome API is now available in _public/api/_ folder. Please take a look at the examples for reference (documentation is in progress). 
- 
-    * [hostname]:3000/choropleth
-    * [hostname]:3000/scatterplot
-    * [hostname]:3000/iris
+```bash
+pnpm install
+pnpm test                                       # ~265 tests
+pnpm build                                      # turbo builds every package
+pnpm --filter @polychrome/example-drawing dev   # localhost:5173
+```
 
-###How to use PolyChrome:
+`pnpm <demo> dev` runs **only that demo** on its own Vite port. The
+landing page's demo cards link with relative paths (`./examples/<x>/`)
+so they only resolve when every demo is mounted under one origin —
+which the dev servers don't do.
 
-- Open your browser and enter the url "localhost:3000" or "[hostname]:3000", depending on where you are running the server. This will open the following page:
-<br><br>
-<img src="https://github.com/karthikbadam/PolyChrome/blob/master/screenshots/screenshot-0.PNG?raw=true">
+To exercise the full hosted-demo flow locally (landing + all four
+demos under one origin, just like production):
 
-- Note that if you want to try out PolyChrome collaboration on the same device, you have to open the above URL ("[hostname]:3000") in two different tabs, as each tab gets a unique deviceID. 
+```bash
+pnpm preview         # builds gh-pages-out/ and serves it on :5180
+```
 
-- Type in a URL in the respective space, and click the triangular icon to submit. Now, PolyChrome fetches the content of this URL by acting as a proxy, and opens it in a new window as follows: 
-<br><br>
-<img src="https://github.com/karthikbadam/PolyChrome/blob/master/screenshots/screenshot-1.PNG?raw=true">
+This is the right local target for testing cross-demo navigation,
+the kiosk transport, and the room-share invite link.
 
+## Hosted demos (no extension needed)
 
--  The feedback panel on top right of this page, shows the details of the events being captured, and also the connected peers (highlighted).
-<br><br>
-<img src="https://github.com/karthikbadam/PolyChrome/blob/master/screenshots/screenshot-2.PNG?raw=true">
-  
+Each demo at `https://karthikbadam.github.io/polychrome/examples/<name>/`
+auto-installs `@polychrome/kiosk`, which connects to a y-webrtc room
+keyed by the `?room=<id>` URL parameter. Open the URL in two tabs (or
+share the "Copy invite link" from the bottom-left banner) and the
+demos sync in real time.
 
-Resources for Newcomers
----
-- [How to install node.js on Windows](http://dailyjs.com/2012/05/03/windows-and-node-1/)
-- [The Wiki](https://github.com/karthikbadam/polychrome/wiki)
-- A simple multi-device drawing application is also provided with this framework. You can try it out by running PolyChrome and opening "[hostname]:3000/drawing" in your browser.
+The kiosk supports three modes (configurable via `?mode=` URL param):
 
-- PolyChrome Demo -- with examples (youtube)
+- `auto` (default) — use the extension if installed, else fall back to kiosk
+- `kiosk` — always use the y-webrtc kiosk transport
+- `extension` — require the extension; show a "needs extension" badge if absent
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=pKnRloUAKps
-" target="_blank"><img src="http://img.youtube.com/vi/pKnRloUAKps/0.jpg" 
-alt="PolyChrome Demo" width="480" height="360" border="10" /></a>
+### Connection notes
 
-- Some sample webpages that can be used with PolyChrome
+Signaling goes through [Trystero](https://github.com/dmotz/trystero)'s
+**nostr** strategy. Peers discover each other via public Nostr relays
+(`wss://relay.damus.io`, `wss://nos.lol`, etc.); the data path is
+still pure WebRTC.
 
-   
-   * http://multiviz.gforge.inria.fr/scatterdice/oscars/
-   * http://bl.ocks.org/VisDockHub/raw/8973882/b0df0fe605374ad0a1950faf2dec5c21b235dd16/
-   * http://bl.ocks.org/mbostock/raw/4343214/7156108135e543e2bc60543a05bc9e9abf4a928c/
+The bottom-left banner shows:
+
+- **connecting to signaling…** — the provider is starting up.
+- **waiting for a peer · relays N/M** — the room is open and N of M
+  Nostr relays are connected. If N is 0 your network is blocking the
+  relay WebSockets; nothing the page can do until that changes.
+- **N peers connected** — WebRTC data channels are established.
+
+Same-browser tabs sync via the in-process `BroadcastChannel` and
+never touch the network. Cross-browser / cross-device sync uses the
+WebRTC path. Symmetric / carrier-grade NAT setups still need TURN,
+which the kiosk does not bundle.
+
+Console logs `[polychrome] trystero room joined: …` and
+`[polychrome] peer joined/left: …` so DevTools shows the connection
+flow in real time.
+
+## Loading the extension
+
+```bash
+pnpm --filter @polychrome/extension build
+# chrome://extensions → Developer mode → Load unpacked → apps/extension/dist
+```
+
+Click the toolbar icon to open the popup:
+- "Start new room" generates a 6-character room code
+- "Join" accepts a code from a peer
+- The popup also has an "↗" link to open the side panel
+
+The side panel shows your identity, the active room, live peers
+(deduplicated by actor across tabs), the History timeline of every
+op produced by anyone in the room, and an "Undo last" button that
+rolls back your most recent action.
+
+## Allowlisted sites and the d3-brush adapter
+
+The extension's value proposition is bringing collaboration to
+**pages we don't own**. Our hosted demos already use the kiosk
+runtime, so the extension is a no-op on the demo origin (it skips
+itself to avoid double-mirroring).
+
+The manifest matches:
+
+- `idl.uw.edu/mosaic/*` and `uwdata.github.io/mosaic/*` (Mosaic
+  examples)
+- `observablehq.com/*` and `*.observableusercontent.com/*`
+- `vega.github.io/editor/*`
+- `bl.ocks.org/*`
+- `public.tableau.com/*`
+- `karthikbadam.github.io/polychrome/*` (the cursors layer is fine,
+  the d3-brush adapter explicitly skips this origin)
+- `localhost` (with the demo dev ports excluded)
+
+### How sync works on third-party pages
+
+Live cursors run everywhere — the bridge captures pointer events
+itself and renders peer arrows over the page. No page cooperation
+needed.
+
+Beyond cursors, modern viz libraries like Mosaic keep their
+`Coordinator` / `Selection` objects inside ESM module closures we
+can't reach from a `<script>`. So instead of trying to hook the
+library, we **mirror the DOM that any d3-brush-backed page
+produces**:
+
+```
+<g class="brush">
+  <rect class="overlay" .../>
+  <rect class="selection" x y width height [display:none when empty]/>
+  <rect class="handle handle--n" />
+  ...
+</g>
+```
+
+The adapter (`apps/extension/src/main-world/adapters/d3-brush.ts`):
+
+1. Discovers every `g.brush` in document order. A `MutationObserver`
+   on `document.body` picks up brushes that appear async (Mosaic
+   renders plots after data load).
+2. Watches each brush's selection rect for attribute changes; when
+   the local user drags, it broadcasts
+   `{ sel: [x,y,w,h] | null, ow, oh }` via
+   `polychrome.share('brush.<index>')`. Overlay dimensions travel
+   with the snapshot so peers with different viewport sizes
+   re-scale correctly.
+3. On a remote update, dispatches `mousedown / mousemove /
+   mousemove / mouseup` on the brush overlay at the recorded
+   extent's corners. d3-brush's state machine listens for those on
+   the overlay, so it drives its `'brush'`/`'end'` events normally
+   and the page's downstream selection / re-render logic runs as
+   if the user had dragged.
+
+Because every d3-driven viz page (Mosaic, vgplot, bl.ocks examples,
+plain d3) renders brushes the same way, this single adapter covers
+the whole d3 ecosystem. Pages that don't use a d3 brush (Tableau
+Public, Observable runtimes that paint their own selection UI) get
+live cursors only — they need their own adapter to sync state.
+
+## Op log + undo
+
+`createPolyApi(ydoc, self)` records every `share().set()`,
+`list().insert()`, `list().delete()`, and `checkpoint()` call into a
+shared Yjs `Y.Array` at `polychrome:oplog`. Each record carries
+enough context for inversion (`prevValue`, `hadPrev`, etc.). The
+log is itself a CRDT, so every peer sees every other peer's
+history converge automatically and late joiners replay the full log
+via the normal initial-sync.
+
+```ts
+api.history.all();                         // readonly snapshot
+api.history.subscribe(records => …);       // immediate + on append
+api.history.undo(record);                  // applies the inverse
+api.history.undoLastBy(myActorId);         // walks back skipping checkpoints
+```
+
+The side panel's Timeline reads `api.history` and the "Undo last"
+button calls `undoLastBy(self.actorId)`. Undo records a forward op,
+so undoing an undo is redo (matches `ot-core`'s invert semantics).
+
+## Legacy
+
+Original 2014 PolyChrome (Node proxy + PeerJS signaling) archived at
+[`legacy/`](legacy/).
